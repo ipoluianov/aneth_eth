@@ -20,3 +20,9 @@
 # Go workspace file
 go.work
 go.work.sum
+
+aneth_eth
+aneth_eth.exe
+data/
+.vscode/
+logs/
