@@ -30,7 +30,7 @@ func (c *An) taskMinutesPepeTransfers(result *Result, txsByMin *db.TxsByMinutes,
 				if !t.TxValid {
 					continue
 				}
-				if len(t.TxTo) > 0 && t.TxTo == "0xdAC17F958D2ee523a2206206994597C13D831ec7" {
+				if len(t.TxTo) > 0 && t.TxTo == "0x6982508145454Ce325dDbE47a25d4ec3d2311933" {
 					isTransfer := utils.CompareMethodId(transferMethodId, t.TxDataMethod)
 					if isTransfer {
 						flValue, _ := utils.ParseDatabigInt(t.TxDataP2).Float64()

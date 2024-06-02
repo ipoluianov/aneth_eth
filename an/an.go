@@ -32,18 +32,28 @@ func NewAn() *An {
 	c.cache = NewCache()
 
 	// TimeCharts
-	c.tasks = append(c.tasks, NewTask("minutes_count", "timechart", "Number of transactions by minute", c.taskMinutesCount, "desc"))
-	c.tasks = append(c.tasks, NewTask("minutes_values", "timechart", "minutes_values", c.taskMinutesValues, "desc"))
-	c.tasks = append(c.tasks, NewTask("minutes_count_of_usdt", "timechart", "minutes_count_of_usdt", c.taskMinutesCountOfUsdt, "desc"))
-	c.tasks = append(c.tasks, NewTask("minutes_rejected", "timechart", "minutes_rejected", c.taskMinutesRejected, "desc"))
-	c.tasks = append(c.tasks, NewTask("minutes_new_contracts", "timechart", "minutes_new_contracts", c.taskMinutesNewContracts, "desc"))
-	c.tasks = append(c.tasks, NewTask("minutes_erc20_transfers", "timechart", "minutes_erc20_transfers", c.taskMinutesERC20Transfers, "desc"))
-	c.tasks = append(c.tasks, NewTask("minutes_pepe_transfers", "timechart", "minutes_pepe_transfers", c.taskMinutesPepeTransfers, "desc"))
+	c.tasks = append(c.tasks, NewTask("minutes_count", "timechart", "Number of transactions by minute", c.taskMinutesCount, `
+	Number of transactions by minute on the chart. Only successful transactions are displayed. This data indicates the overall activity of the network.`))
+	c.tasks = append(c.tasks, NewTask("minutes_values", "timechart", "Values by minute", c.taskMinutesValues, `
+	The graph shows the total volume of ETH transfers. These can be either regular transfers between accounts or transfers to smart merchant addresses.`))
+	c.tasks = append(c.tasks, NewTask("minutes_count_of_usdt", "timechart", "Number of USDT transfers per minute", c.taskMinutesCountOfUsdt, `
+	A graph of the number of USDT transfers on the Ethereum network is displayed. Only successful transactions are displayed.`))
+	c.tasks = append(c.tasks, NewTask("minutes_rejected", "timechart", "Number of rejected transactions by minute", c.taskMinutesRejected, `
+	Displays the number of unsuccessful transactions recently. An increase in the number of such transactions indicates possible unsuccessful attacks on the network.`))
+	c.tasks = append(c.tasks, NewTask("minutes_new_contracts", "timechart", "Number of new contracts by minute", c.taskMinutesNewContracts, `
+	The graph displays the number of transactions that create new smart contracts on the network.`))
+	c.tasks = append(c.tasks, NewTask("minutes_erc20_transfers", "timechart", "ERC20 transfers by minute", c.taskMinutesERC20Transfers, `
+	The graph shows the number of transfers using the USDT token smart contract. USDT is a stablecoin whose price is maintained by the issuing company.`))
+	c.tasks = append(c.tasks, NewTask("minutes_pepe_transfers", "timechart", "PEPE transfers by minute", c.taskMinutesPepeTransfers, `
+	Displaying the volume of PEPE token transfers on the network`))
 
 	// Tables
-	c.tasks = append(c.tasks, NewTask("accounts_by_send_count", "table", "Top FROM", c.taskAccountsBySendCount, "desc"))
-	c.tasks = append(c.tasks, NewTask("accounts_by_recv_count", "table", "Top TO", c.taskAccountsByRcvCount, "desc"))
-	c.tasks = append(c.tasks, NewTask("new_contracts", "table", "New Contracts", c.taskNewContracts, "desc"))
+	c.tasks = append(c.tasks, NewTask("accounts_by_send_count", "table", "Top ETH FROM", c.taskAccountsBySendCount, `
+	Top 10 addresses participating in transactions as a sender`))
+	c.tasks = append(c.tasks, NewTask("accounts_by_recv_count", "table", "Top ETH TO", c.taskAccountsByRcvCount, `
+	Top 10 addresses participating in transactions as a receiver`))
+	c.tasks = append(c.tasks, NewTask("new_contracts", "table", "New ETH Contracts - Last 24 hours", c.taskNewContracts, `
+	List of new smart contracts`))
 
 	return &c
 }

@@ -30,7 +30,7 @@ func (c *An) taskMinutesCountOfUsdt(result *Result, txsByMin *db.TxsByMinutes, t
 				if !t.TxValid {
 					continue
 				}
-				if len(t.TxTo) > 0 && t.TxTo == "0x514910771AF9Ca656af840dff83E8264EcF986CA" {
+				if len(t.TxTo) > 0 && t.TxTo == "0xdAC17F958D2ee523a2206206994597C13D831ec7" {
 					isTransfer := utils.CompareMethodId(transferMethodId, t.TxDataMethod)
 					if isTransfer {
 						v += 1

@@ -16,10 +16,15 @@ var Instance *HttpServer
 type HttpServer struct {
 	srv    *http.Server
 	srvTLS *http.Server
+
+	siteName        string
+	siteDescription string
 }
 
 func NewHttpServer() *HttpServer {
 	var c HttpServer
+	c.siteName = "Ethereum Analytics - U00"
+	c.siteDescription = "Ethereum Analytics. Various network statistics for the last 24 hours."
 	return &c
 }
 
@@ -177,9 +182,10 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *HttpServer) processPage(w http.ResponseWriter, r *http.Request, pageCode string) {
-	result := []byte(static.FileIndex)
-	str := string(result)
+	result := string(static.FileIndex)
 
+	title := c.siteName
+	description := c.siteDescription
 	content := ""
 
 	if pageCode == "index" {
@@ -188,18 +194,25 @@ func (c *HttpServer) processPage(w http.ResponseWriter, r *http.Request, pageCod
 
 	if pageCode == "map" {
 		content = c.getMap()
+		title = "Site Map - " + c.siteName
+		description = "Site Map. " + c.siteDescription
 	}
 
 	if pageCode == "state" {
 		content = static.FileState
+		title = "State - " + c.siteName
+		description = "State of the site. " + c.siteDescription
 	}
 
 	if len(content) == 0 {
-		content = c.getPage(pageCode)
+		content, title, description = c.getPage(pageCode, title, description)
 	}
 
-	result = []byte(strings.ReplaceAll(str, "%CONTENT%", content))
-	w.Write(result)
+	result = strings.ReplaceAll(result, "%TITLE%", title)
+	result = strings.ReplaceAll(result, "%DESCRIPTION%", description)
+	result = strings.ReplaceAll(result, "%CONTENT%", content)
+
+	w.Write([]byte(result))
 }
 
 func (c *HttpServer) getMap() string {
@@ -238,11 +251,12 @@ func (c *HttpServer) getMap() string {
 	return result
 }
 
-func (c *HttpServer) getPage(code string) string {
-	result := ""
+func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescription string) (result string, title string, description string) {
+	title = defaultTitle
+	description = defaultDescription
 	task := an.Instance.GetTask(code)
 	if task == nil {
-		return ""
+		return
 	}
 
 	if task.Type == "timechart" {
@@ -252,12 +266,15 @@ func (c *HttpServer) getPage(code string) string {
 		result = static.FileViewTable
 	}
 
+	title = task.Name + " - " + c.siteName
+	description = task.Description + " " + defaultDescription
+
 	result = strings.ReplaceAll(result, "%VIEW_CODE%", task.Code)
 	result = strings.ReplaceAll(result, "%VIEW_NAME%", task.Name)
 	result = strings.ReplaceAll(result, "%VIEW_DESC%", task.Description)
 	result = strings.ReplaceAll(result, "VIEW_INSTANCE", "default")
 
-	return result
+	return
 }
 
 func (c *HttpServer) getHomePage() string {
