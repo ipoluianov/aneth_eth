@@ -1,6 +1,7 @@
 package an
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -11,7 +12,14 @@ import (
 func (c *An) taskNewContracts(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
 	logger.Println("An::taskNewContracts begin")
 
-	m := make(map[string]float64)
+	type Item struct {
+		ContractAddress string
+		DT              uint64
+		DTStr           string
+		GasUsed         uint64
+	}
+
+	m := make(map[string]*Item)
 	for i := 0; i < len(txs); i++ {
 		tx := txs[i]
 		if tx.TxNewContract == "" {
@@ -20,35 +28,37 @@ func (c *An) taskNewContracts(result *Result, txsByMin *db.TxsByMinutes, txs []*
 		if !tx.TxValid {
 			continue
 		}
-		m[tx.TxNewContract] = float64(tx.TxGasUsed)
-	}
-
-	type Item struct {
-		ContractAddress string
-		GasUsed         float64
+		var item Item
+		item.ContractAddress = tx.TxNewContract
+		item.DT = tx.BlDT
+		item.DTStr = time.Unix(int64(tx.BlDT), 0).Format("2006-01-02 15:04:05")
+		item.GasUsed = tx.TxGasUsed
+		m[tx.TxNewContract] = &item
 	}
 
 	items := make([]*Item, 0)
-	for key, value := range m {
-		var item Item
-		item.ContractAddress = key
-		item.GasUsed = value
-		items = append(items, &item)
+	for _, value := range m {
+		items = append(items, value)
 	}
 
 	sort.Slice(items, func(i, j int) bool {
-		return items[i].GasUsed > items[j].GasUsed
+		return items[i].DT < items[j].DT
 	})
+
+	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Contract Address"})
+	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Date/Time"})
+	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Gas Used"})
 
 	for i := 0; i < len(items); i++ {
 		item := items[i]
-		var tableItem ResultItemTable
-		tableItem.Text = item.ContractAddress
-		tableItem.Values = append(tableItem.Values, item.GasUsed)
-		result.ItemsTable = append(result.ItemsTable, &tableItem)
+		var tableItem ResultTableItem
+		tableItem.Values = append(tableItem.Values, item.ContractAddress)
+		tableItem.Values = append(tableItem.Values, item.DTStr)
+		tableItem.Values = append(tableItem.Values, fmt.Sprint(item.GasUsed))
+		result.Table.Items = append(result.Table.Items, &tableItem)
 	}
 
-	result.Count = len(result.ItemsTable)
+	result.Count = len(result.Table.Items)
 	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
 	logger.Println("An::taskNewContracts end")
 }

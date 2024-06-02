@@ -4,32 +4,52 @@
 
 th {
     padding-left: 10pt;
-    text-align: right;
+    text-align: left;
 }
 
 td {
     padding-left: 10pt;
-    text-align: right;
+    text-align: left;
 }
 a {
-    color: #4169e1;
+    color: #0AF;
 }
 
 a:hover {
-    color: #007dff;
+    color: #0CF;
 }
 
 body {
-    background-color: #FFF;
+    background-color: #222;
+    color: #EEE;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12pt;
 }
 
-.wrapper {
+.main_block {
     max-width: 800px;
     margin: 0% auto;
 }
 
-.header {
-    border-bottom: 1px solid black;
+.main_block_header {
+    background-color: #333;
+    padding: 3px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #AAA;
+}
+
+.main_block_content {
+    background-color: #222;
+    padding: 3px;
+}
+
+.main_block_bottom {
+    background-color: #333;
+    padding: 3px;
+    border-top: 1px solid #BBB;
+    margin-top: 10px;
+}
+
+.bottom_link {
+    padding: 3px;
 }

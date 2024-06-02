@@ -1,6 +1,7 @@
 package an
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -37,18 +38,21 @@ func (c *An) taskAccountsByRcvCount(result *Result, txsByMin *db.TxsByMinutes, t
 		return items[i].count > items[j].count
 	})
 
+	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Address"})
+	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Count"})
+
 	for i := 0; i < 10; i++ {
 		if i >= len(items) {
 			break
 		}
 		item := items[i]
-		var tableItem ResultItemTable
-		tableItem.Text = item.addr
-		tableItem.Values = append(tableItem.Values, item.count)
-		result.ItemsTable = append(result.ItemsTable, &tableItem)
+		var tableItem ResultTableItem
+		tableItem.Values = append(tableItem.Values, item.addr)
+		tableItem.Values = append(tableItem.Values, fmt.Sprint(item.count))
+		result.Table.Items = append(result.Table.Items, &tableItem)
 	}
 
-	result.Count = len(result.ItemsTable)
+	result.Count = len(result.Table.Items)
 	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
 	logger.Println("An::taskAccountsByRcvCount end")
 }

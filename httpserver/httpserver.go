@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ipoluianov/aneth_eth/an"
 	"github.com/ipoluianov/aneth_eth/static"
 	"github.com/ipoluianov/aneth_eth/utils"
 	"github.com/ipoluianov/gomisc/logger"
@@ -182,9 +183,112 @@ func (c *HttpServer) processPage(w http.ResponseWriter, r *http.Request, pageCod
 	content := ""
 
 	if pageCode == "index" {
-		content = static.FileHome
+		content = c.getHomePage()
+	}
+
+	if pageCode == "map" {
+		content = c.getMap()
+	}
+
+	if pageCode == "state" {
+		content = static.FileState
+	}
+
+	if len(content) == 0 {
+		content = c.getPage(pageCode)
 	}
 
 	result = []byte(strings.ReplaceAll(str, "%CONTENT%", content))
 	w.Write(result)
+}
+
+func (c *HttpServer) getMap() string {
+	result := ""
+
+	fAddItem := func(name string, url string) {
+		tmp := `    <li><a href="%URL%">%NAME%</a></li>` + "\r\n"
+		tmp = strings.ReplaceAll(tmp, "%URL%", url)
+		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
+		result += tmp
+	}
+
+	fAddHeader := func(name string) {
+		tmp := `    <h2>%NAME%</h2>` + "\r\n"
+		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
+		result += tmp
+	}
+
+	fAddHeader("Main")
+	fAddItem("INDEX", "/")
+	fAddItem("SITE MAP", "/p/map")
+
+	anResults := an.Instance.GetResultsCodes()
+	fAddHeader("Analytics")
+	for _, r := range anResults {
+		fAddItem(r, "/p/"+r)
+	}
+
+	fAddHeader("JSON-RPC")
+	fAddItem("STATE", "/d/state")
+
+	for _, r := range anResults {
+		fAddItem(r, "/d/"+r)
+	}
+
+	return result
+}
+
+func (c *HttpServer) getPage(code string) string {
+	result := ""
+	task := an.Instance.GetTask(code)
+	if task == nil {
+		return ""
+	}
+
+	if task.Type == "timechart" {
+		result = static.FileViewChart
+	}
+	if task.Type == "table" {
+		result = static.FileViewTable
+	}
+
+	result = strings.ReplaceAll(result, "%VIEW_CODE%", task.Code)
+	result = strings.ReplaceAll(result, "%VIEW_NAME%", task.Name)
+	result = strings.ReplaceAll(result, "%VIEW_DESC%", task.Description)
+	result = strings.ReplaceAll(result, "VIEW_INSTANCE", "default")
+
+	return result
+}
+
+func (c *HttpServer) getHomePage() string {
+	result := ""
+
+	fAddItem := func(name string, url string) {
+		tmp := `    <li><a href="%URL%">%NAME%</a></li>` + "\r\n"
+		tmp = strings.ReplaceAll(tmp, "%URL%", url)
+		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
+		result += tmp
+	}
+
+	fAddText := func(text string) {
+		tmp := `<div>%TEXT%</div>` + "\r\n"
+		tmp = strings.ReplaceAll(tmp, "%TEXT%", text)
+		result += tmp
+	}
+
+	fAddHeader := func(name string) {
+		tmp := `    <h2>%NAME%</h2>` + "\r\n"
+		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
+		result += tmp
+	}
+
+	fAddHeader("ETH.U00.IO")
+	fAddText("ETH analytics")
+
+	anResults := an.Instance.GetResultsCodes()
+	for _, r := range anResults {
+		fAddItem(r, "/p/"+r)
+	}
+
+	return result
 }

@@ -1,21 +1,17 @@
 package an
 
-type ResultItemByMinutes struct {
-	Index int
-	DT    uint64
-	DTStr string
-	Value float64
-}
-
-type ResultItemTable struct {
-	Text   string
-	Values []float64
+type ResultParameter struct {
+	Text  string
+	Value string
 }
 
 type Result struct {
 	Code            string
+	Type            string
 	Count           int
 	CurrentDateTime string
-	ItemsByMinutes  []*ResultItemByMinutes
-	ItemsTable      []*ResultItemTable
+
+	Parameters []*ResultParameter
+	TimeChart  ResultTimeChart
+	Table      ResultTable
 }

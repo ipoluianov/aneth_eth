@@ -8,6 +8,9 @@ var FileIndex string
 //go:embed home.html
 var FileHome string
 
+//go:embed state.html
+var FileState string
+
 // goFembed index_without_header.html
 var FileIndexWithoutHeader string
 

@@ -1,5 +1,6 @@
 <div id="app">
-    <div style="border-top: 1px solid #FFFFFF20;padding: 3px;">%VIEW_NAME%</div>
+    <h1>%VIEW_NAME%</h1>
+    <div>%VIEW_DESC%</div>
     <div style="font-size: 8pt;" id="logData_VIEW_INSTANCE"></div>
 </div>
 
@@ -10,21 +11,31 @@
     function loadData_VIEW_INSTANCE() {
         console.log("load data")
         loadJson("/d/%VIEW_CODE%").then(data => {
-            keys = data.meta;
-            items = data.data;
-            let xValues = [];
-            let yValues = [];
-
-            let logData = "";
-            for (let i in items) {
-                let item = items[i];
-                xValues.push(item["Date/Time"]);
-                yValues.push(item["Total USDT"]);
-                logData += item["Date/Time"] + " = " + item["Total USDT"] + "<br/>";
+            let resultHtml = "";
+            resultHtml += "<table>";
+            let columnsCount = data.Table.Columns.length;
+            resultHtml += `<tr>`;
+            for (let i in data.Table.Columns) {
+                let col = data.Table.Columns[i];
+                resultHtml += `<td style="border-bottom: 1px solid #888; font-weight: bold;">` + col.Name + "</td>";
             }
-            document.getElementById('logData_VIEW_INSTANCE').innerHTML = logData;
+            resultHtml += "</tr>";
+
+            for (let rowIndex in data.Table.Items) {
+                let row = data.Table.Items[rowIndex];
+                resultHtml += "<tr>";
+                for (let colIndex = 0; colIndex < columnsCount; colIndex++) {
+                    let item = row.Values[colIndex];
+                    resultHtml += "<td>" + item + "</td>";
+                }
+                resultHtml += "</tr>";
+            }
+            
+            resultHtml += "</table>";
+            document.getElementById('logData_VIEW_INSTANCE').innerHTML = resultHtml;
         })
             .catch(error => {
+                console.log(error)
             });
     }
 

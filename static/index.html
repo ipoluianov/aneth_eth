@@ -6,13 +6,13 @@
     <script src="https://cdn.jsdelivr.net/npm/moment"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <link rel="stylesheet" href="/style.css">
-    
+
     <script>
         async function loadJson(url) {
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error('Ошибка загрузки: ' + response.statusText);
+                    throw new Error('Loading error: ' + response.statusText);
                 }
                 const data = await response.json();
                 return data
@@ -24,13 +24,31 @@
 </head>
 
 <body>
-    <div class="wrapper">
-        <div class="header">
-            <a href="/"><div>U00</div></a>
-            <div>Dig Deeper</div>
+    <div class="main_block">
+        <div class="main_block_header">
+            <a href="/" style="text-decoration: none;">
+                <div style="font-size: 16pt;">U00 - ETH</div>
+            </a>
+            <div>Ethereum Analytics - Last 24 Hours</div>
         </div>
-        <div>
+        <div class="main_block_content">
             %CONTENT%
+        </div>
+        <div class="main_block_bottom">
+            <div style="display: flex; direction: column;">
+                <div style="padding: 10px;">
+                    <div class="bottom_link" style="font-weight: bold; border-bottom: 1px solid #AAAA;">Links</div>
+                    <div class="bottom_link"><a href="/p/map">SITE MAP</a></div>
+                    <div class="bottom_link"><a href="/p/state">STATE</a></div>
+                    <div class="bottom_link"><a href="https://github.com/ipoluianov/aneth_eth">Source Code</a></div>
+                </div>
+                <div style="padding: 10px;">
+                    <div class="bottom_link" style="font-weight: bold; border-bottom: 1px solid #AAA;">Legal</div>
+                    <div class="bottom_link"><a href="/p/legal_policy">Privacy Policy</a></div>
+                    <div class="bottom_link"><a href="/p/legal_user_agreement">User Agreement</a></div>
+                </div>
+            </div>
+            <div style="color: #888888; font-size: 12pt;">Copyright (c) Poluianov Ivan, 2024</div>
         </div>
     </div>
 

@@ -30,17 +30,21 @@ func NewAn() *An {
 	var c An
 	c.analytics = make(map[string]*Result)
 	c.cache = NewCache()
-	c.tasks = append(c.tasks, NewTask("minutes_count", c.taskMinutesCount))
-	c.tasks = append(c.tasks, NewTask("minutes_values", c.taskMinutesValues))
-	c.tasks = append(c.tasks, NewTask("minutes_count_of_usdt", c.taskMinutesCountOfUsdt))
-	c.tasks = append(c.tasks, NewTask("minutes_rejected", c.taskMinutesRejected))
-	c.tasks = append(c.tasks, NewTask("minutes_new_contracts", c.taskMinutesNewContracts))
-	c.tasks = append(c.tasks, NewTask("minutes_erc20_transfers", c.taskMinutesERC20Transfers))
-	c.tasks = append(c.tasks, NewTask("minutes_pepe_transfers", c.taskMinutesPepeTransfers))
 
-	c.tasks = append(c.tasks, NewTask("accounts_by_send_count", c.taskAccountsBySendCount))
-	c.tasks = append(c.tasks, NewTask("accounts_by_recv_count", c.taskAccountsByRcvCount))
-	c.tasks = append(c.tasks, NewTask("new_contracts", c.taskNewContracts))
+	// TimeCharts
+	c.tasks = append(c.tasks, NewTask("minutes_count", "timechart", "Number of transactions by minute", c.taskMinutesCount, "desc"))
+	c.tasks = append(c.tasks, NewTask("minutes_values", "timechart", "minutes_values", c.taskMinutesValues, "desc"))
+	c.tasks = append(c.tasks, NewTask("minutes_count_of_usdt", "timechart", "minutes_count_of_usdt", c.taskMinutesCountOfUsdt, "desc"))
+	c.tasks = append(c.tasks, NewTask("minutes_rejected", "timechart", "minutes_rejected", c.taskMinutesRejected, "desc"))
+	c.tasks = append(c.tasks, NewTask("minutes_new_contracts", "timechart", "minutes_new_contracts", c.taskMinutesNewContracts, "desc"))
+	c.tasks = append(c.tasks, NewTask("minutes_erc20_transfers", "timechart", "minutes_erc20_transfers", c.taskMinutesERC20Transfers, "desc"))
+	c.tasks = append(c.tasks, NewTask("minutes_pepe_transfers", "timechart", "minutes_pepe_transfers", c.taskMinutesPepeTransfers, "desc"))
+
+	// Tables
+	c.tasks = append(c.tasks, NewTask("accounts_by_send_count", "table", "Top FROM", c.taskAccountsBySendCount, "desc"))
+	c.tasks = append(c.tasks, NewTask("accounts_by_recv_count", "table", "Top TO", c.taskAccountsByRcvCount, "desc"))
+	c.tasks = append(c.tasks, NewTask("new_contracts", "table", "New Contracts", c.taskNewContracts, "desc"))
+
 	return &c
 }
 
@@ -59,6 +63,28 @@ func (c *An) GetState() *AnState {
 	st.Cache = c.cache.GetState()
 	c.mtx.Unlock()
 	return &st
+}
+
+func (c *An) GetTask(code string) *Task {
+	var task *Task
+	c.mtx.Lock()
+	for _, t := range c.tasks {
+		if t.Code == code {
+			task = t
+		}
+	}
+	c.mtx.Unlock()
+	return task
+}
+
+func (c *An) GetResultsCodes() []string {
+	result := make([]string, 0)
+	c.mtx.Lock()
+	for _, task := range c.tasks {
+		result = append(result, task.Code)
+	}
+	c.mtx.Unlock()
+	return result
 }
 
 func (c *An) GetResult(code string) *Result {
@@ -86,7 +112,14 @@ func (c *An) ThAn() {
 
 		for _, task := range c.tasks {
 			var res Result
+
 			res.Code = task.Code
+			res.Type = task.Type
+			res.Parameters = make([]*ResultParameter, 0)
+			res.Table.Items = make([]*ResultTableItem, 0)
+			res.Table.Columns = make([]*ResultTableColumn, 0)
+			res.TimeChart.Items = make([]*ResultTimeChartItem, 0)
+
 			dtBegin := time.Now()
 			task.Fn(&res, txsByMinutes, txs)
 			dtEnd := time.Now()

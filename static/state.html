@@ -1,0 +1,98 @@
+<div>
+    <h1>State</h1>
+    <div>Status:<span id="state_Status"></span></div>
+    <div>SubStatus:<span id="state_SubStatus"></span></div>
+    <div>CountOfBlocks:<span id="state_CountOfBlocks"></span></div>
+
+    <div>ReceiptsReceivedCount:<span id="state_ReceiptsReceivedCount"></span></div>
+    <div>ReceiptsReceivedError:<span id="state_ReceiptsReceivedError"></span></div>
+    <div>ReceiptsMismatchError:<span id="state_ReceiptsMismatchError"></span></div>
+
+    <div>LoadedBlocksTimeRange:<span id="state_LoadedBlocksTimeRange"></span></div>
+
+    <h2>Loaded Blocks</h2>
+    <div id="state_LoadedBlocks" style="min-height: 100px;"></div>
+    <h2>Cache</h2>
+    <div id="state_Cache"></div>
+    <h2>Tasks</h2>
+    <div id="state_Tasks" ></div>
+</div>  
+<script>
+
+    function loadData_State() {
+        console.log("load data")
+        loadJson("/d/state").then(data => {
+
+            document.getElementById('state_Status').innerHTML = data.DbState.Status;
+            document.getElementById('state_SubStatus').innerHTML = data.DbState.SubStatus;
+
+            document.getElementById('state_CountOfBlocks').innerHTML = data.DbState.CountOfBlocks;
+            document.getElementById('state_ReceiptsReceivedCount').innerHTML = data.DbState.ReceiptsReceivedCount;
+            document.getElementById('state_ReceiptsReceivedError').innerHTML = data.DbState.ReceiptsReceivedError;
+            document.getElementById('state_ReceiptsMismatchError').innerHTML = data.DbState.ReceiptsMismatchError;
+            document.getElementById('state_LoadedBlocksTimeRange').innerHTML = data.DbState.LoadedBlocksTimeRange;
+
+
+            let loadedBlocksHtml = "<table>\r\n";
+                loadedBlocksHtml += "<tr>";
+                    loadedBlocksHtml += "<td>DtStr1</td>";
+                    loadedBlocksHtml += "<td>Number1</td>";
+                    loadedBlocksHtml += "<td>DtStr2</td>";
+                    loadedBlocksHtml += "<td>Number2</td>";
+                    loadedBlocksHtml += "<td>Count</td>";
+                    loadedBlocksHtml += "</tr>";
+            for (let i in data.DbState.LoadedBlocks) {
+                let item = data.DbState.LoadedBlocks[i];
+                loadedBlocksHtml += "<tr>";
+                    loadedBlocksHtml += "<td>" + item.DtStr1 + "</td>";
+                    loadedBlocksHtml += "<td>" + item.Number1 + "</td>";
+                    loadedBlocksHtml += "<td>" + item.DtStr2 + "</td>";
+                    loadedBlocksHtml += "<td>" + item.Number2 + "</td>";
+                    loadedBlocksHtml += "<td>" + item.Count + "</td>";
+                    loadedBlocksHtml += "</tr>";
+            }
+            loadedBlocksHtml += "</table>\r\n"
+            document.getElementById('state_LoadedBlocks').innerHTML = loadedBlocksHtml; 
+
+            let tasksHtml = "<table>\r\n";
+            tasksHtml += "<tr>";
+            tasksHtml += "<td>Code</td>"
+            tasksHtml += "<td>Duration</td>"
+            tasksHtml += "<td>Time</td>"
+            tasksHtml += "</tr>";
+            for (let i in data.AnState.Tasks) {
+                let item = data.AnState.Tasks[i];
+                tasksHtml += "<tr>";
+                tasksHtml += "<td>" + item.Code + "</td>";
+                tasksHtml += "<td>" + item.LastExecTimeDurationMs + "</td>";
+                tasksHtml += "<td>" + item.LastExecTime + "</td>"
+                tasksHtml += "</tr>";
+            }
+            tasksHtml += "</table>\r\n"
+            document.getElementById('state_Tasks').innerHTML = tasksHtml;
+
+
+
+            let stateCacheHtml = "<table>\r\n";
+            stateCacheHtml += "<tr>";
+            stateCacheHtml += "<td>Name</td>";
+            stateCacheHtml += "<td>Value</td>";
+            stateCacheHtml += "</tr>";
+            stateCacheHtml += "<tr><td>Count</td><td>" + data.AnState.Cache.CountOfItems + "</td></tr>";
+            stateCacheHtml += "<tr><td>LastClearDTStr</td><td>" + data.AnState.Cache.LastClearDTStr + "</td></tr>";
+            stateCacheHtml += "<tr><td>ClearCount</td><td>" + data.AnState.Cache.ClearCount + "</td></tr>";
+            stateCacheHtml += "<tr><td>GetCount</td><td>" + data.AnState.Cache.GetCount + "</td></tr>";
+            stateCacheHtml += "<tr><td>SetCount</td><td>" + data.AnState.Cache.SetCount + "</td></tr>";
+            stateCacheHtml += "<tr><td>RemoveCount</td><td>" + data.AnState.Cache.RemoveCount + "</td></tr>";
+            stateCacheHtml += "</table>\r\n"
+
+            document.getElementById('state_Cache').innerHTML = stateCacheHtml;
+        })
+            .catch(error => {
+            });
+    }
+
+    loadData_State();
+    setInterval(loadData_State, 1000);
+
+</script>

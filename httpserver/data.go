@@ -20,5 +20,9 @@ func GetData(code string) []byte {
 		res, _ := json.MarshalIndent(mainState, "", " ")
 		return res
 	}
-	return nil
+
+	res := an.Instance.GetResult(code)
+	bs, _ := json.MarshalIndent(res, "", " ")
+
+	return bs
 }
