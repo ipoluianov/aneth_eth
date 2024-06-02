@@ -33,27 +33,37 @@ func NewAn() *An {
 
 	// TimeCharts
 	c.tasks = append(c.tasks, NewTask("minutes_count", "timechart", "Number of transactions by minute", c.taskMinutesCount, `
-	Number of transactions by minute on the chart. Only successful transactions are displayed. This data indicates the overall activity of the network.`))
+	Number of transactions by minute on the chart. Only successful transactions are displayed. This data indicates the overall activity of the network.`, `
+	`))
 	c.tasks = append(c.tasks, NewTask("minutes_values", "timechart", "Values by minute", c.taskMinutesValues, `
-	The graph shows the total volume of ETH transfers. These can be either regular transfers between accounts or transfers to smart merchant addresses.`))
+	The graph shows the total volume of ETH transfers. These can be either regular transfers between accounts or transfers to smart merchant addresses.`, `
+	`))
 	c.tasks = append(c.tasks, NewTask("minutes_count_of_usdt", "timechart", "Number of USDT transfers per minute", c.taskMinutesCountOfUsdt, `
-	A graph of the number of USDT transfers on the Ethereum network is displayed. Only successful transactions are displayed.`))
+	A graph of the number of USDT transfers on the Ethereum network is displayed. Only successful transactions are displayed.`, `
+	`))
 	c.tasks = append(c.tasks, NewTask("minutes_rejected", "timechart", "Number of rejected transactions by minute", c.taskMinutesRejected, `
-	Displays the number of unsuccessful transactions recently. An increase in the number of such transactions indicates possible unsuccessful attacks on the network.`))
+	Displays the number of unsuccessful transactions recently. An increase in the number of such transactions indicates possible unsuccessful attacks on the network.`, `
+	The graph shows the number of transactions that, after being included in a block, were rejected as a result of executing a smart contract, per minute. Possible reasons for rejection include incorrect call parameters, insufficient funds to complete the operation, errors in the smart contract logic, and failure to meet contract conditions.`))
 	c.tasks = append(c.tasks, NewTask("minutes_new_contracts", "timechart", "Number of new contracts by minute", c.taskMinutesNewContracts, `
-	The graph displays the number of transactions that create new smart contracts on the network.`))
+	The graph displays the number of transactions that create new smart contracts on the network.`, `
+	`))
 	c.tasks = append(c.tasks, NewTask("minutes_erc20_transfers", "timechart", "ERC20 transfers by minute", c.taskMinutesERC20Transfers, `
-	The graph shows the number of transfers using the USDT token smart contract. USDT is a stablecoin whose price is maintained by the issuing company.`))
+	The graph shows the number of transfers using the USDT token smart contract. USDT is a stablecoin whose price is maintained by the issuing company.`, `
+	`))
 	c.tasks = append(c.tasks, NewTask("minutes_pepe_transfers", "timechart", "PEPE transfers by minute", c.taskMinutesPepeTransfers, `
-	Displaying the volume of PEPE token transfers on the network`))
+	Displaying the volume of PEPE token transfers on the network`, `
+	`))
 
 	// Tables
 	c.tasks = append(c.tasks, NewTask("accounts_by_send_count", "table", "Top ETH FROM", c.taskAccountsBySendCount, `
-	Top 10 addresses participating in transactions as a sender`))
+	Top 10 addresses participating in transactions as a sender`, `
+	`))
 	c.tasks = append(c.tasks, NewTask("accounts_by_recv_count", "table", "Top ETH TO", c.taskAccountsByRcvCount, `
-	Top 10 addresses participating in transactions as a receiver`))
+	Top 10 addresses participating in transactions as a receiver`, `
+	`))
 	c.tasks = append(c.tasks, NewTask("new_contracts", "table", "New ETH Contracts - Last 24 hours", c.taskNewContracts, `
-	List of new smart contracts`))
+	List of new smart contracts`, `
+	`))
 
 	return &c
 }
@@ -87,11 +97,16 @@ func (c *An) GetTask(code string) *Task {
 	return task
 }
 
-func (c *An) GetResultsCodes() []string {
-	result := make([]string, 0)
+func (c *An) GetTasks() []Task {
+	result := make([]Task, 0)
 	c.mtx.Lock()
 	for _, task := range c.tasks {
-		result = append(result, task.Code)
+		var t Task
+		t.Code = task.Code
+		t.Name = task.Name
+		t.Description = task.Description
+		t.Type = task.Type
+		result = append(result, t)
 	}
 	c.mtx.Unlock()
 	return result

@@ -10,6 +10,7 @@ type Task struct {
 
 	Name        string
 	Description string
+	Text        string
 }
 
 type TaskState struct {
@@ -18,7 +19,7 @@ type TaskState struct {
 	LastExecTimeDurationMs int
 }
 
-func NewTask(code string, tp string, name string, fn func(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx), desc string) *Task {
+func NewTask(code string, tp string, name string, fn func(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx), desc string, text string) *Task {
 	var c Task
 	c.Code = code
 	c.Type = tp
@@ -26,5 +27,6 @@ func NewTask(code string, tp string, name string, fn func(result *Result, txsByM
 	c.Description = desc
 	c.Fn = fn
 	c.State.Code = code
+	c.Text = text
 	return &c
 }

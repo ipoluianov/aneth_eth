@@ -235,17 +235,17 @@ func (c *HttpServer) getMap() string {
 	fAddItem("INDEX", "/")
 	fAddItem("SITE MAP", "/p/map")
 
-	anResults := an.Instance.GetResultsCodes()
+	tasks := an.Instance.GetTasks()
 	fAddHeader("Analytics")
-	for _, r := range anResults {
-		fAddItem(r, "/p/"+r)
+	for _, task := range tasks {
+		fAddItem(task.Name, "/p/"+task.Code)
 	}
 
-	fAddHeader("JSON-RPC")
+	fAddHeader("JSON-REST")
 	fAddItem("STATE", "/d/state")
 
-	for _, r := range anResults {
-		fAddItem(r, "/d/"+r)
+	for _, task := range tasks {
+		fAddItem(task.Code, "/d/"+task.Code)
 	}
 
 	return result
@@ -262,6 +262,7 @@ func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescriptio
 	if task.Type == "timechart" {
 		result = static.FileViewChart
 	}
+
 	if task.Type == "table" {
 		result = static.FileViewTable
 	}
@@ -272,6 +273,7 @@ func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescriptio
 	result = strings.ReplaceAll(result, "%VIEW_CODE%", task.Code)
 	result = strings.ReplaceAll(result, "%VIEW_NAME%", task.Name)
 	result = strings.ReplaceAll(result, "%VIEW_DESC%", task.Description)
+	result = strings.ReplaceAll(result, "%VIEW_TEXT%", task.Text)
 	result = strings.ReplaceAll(result, "VIEW_INSTANCE", "default")
 
 	return
@@ -302,9 +304,9 @@ func (c *HttpServer) getHomePage() string {
 	fAddHeader("ETH.U00.IO")
 	fAddText("ETH analytics")
 
-	anResults := an.Instance.GetResultsCodes()
-	for _, r := range anResults {
-		fAddItem(r, "/p/"+r)
+	tasks := an.Instance.GetTasks()
+	for _, task := range tasks {
+		fAddItem(task.Name, "/p/"+task.Code)
 	}
 
 	return result
