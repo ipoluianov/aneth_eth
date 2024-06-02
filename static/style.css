@@ -1,0 +1,35 @@
+.data_table {
+    color: #333;
+}
+
+th {
+    padding-left: 10pt;
+    text-align: right;
+}
+
+td {
+    padding-left: 10pt;
+    text-align: right;
+}
+a {
+    color: #4169e1;
+}
+
+a:hover {
+    color: #007dff;
+}
+
+body {
+    background-color: #FFF;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12pt;
+}
+
+.wrapper {
+    max-width: 800px;
+    margin: 0% auto;
+}
+
+.header {
+    border-bottom: 1px solid black;
+}

@@ -1,0 +1,39 @@
+<html>
+
+<head>
+    <title>%TITLE%</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    <link rel="stylesheet" href="/style.css">
+    
+    <script>
+        async function loadJson(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки: ' + response.statusText);
+                }
+                const data = await response.json();
+                return data
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <a href="/"><div>U00</div></a>
+            <div>Dig Deeper</div>
+        </div>
+        <div>
+            %CONTENT%
+        </div>
+    </div>
+
+</body>
+
+</html>

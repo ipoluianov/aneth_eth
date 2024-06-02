@@ -1,0 +1,35 @@
+<div id="app">
+    <div style="border-top: 1px solid #FFFFFF20;padding: 3px;">%VIEW_NAME%</div>
+    <div style="font-size: 8pt;" id="logData_VIEW_INSTANCE"></div>
+</div>
+
+<script>
+    let chartInstance_VIEW_INSTANCE;
+    let items_VIEW_INSTANCE = [];
+
+    function loadData_VIEW_INSTANCE() {
+        console.log("load data")
+        loadJson("/d/%VIEW_CODE%").then(data => {
+            keys = data.meta;
+            items = data.data;
+            let xValues = [];
+            let yValues = [];
+
+            let logData = "";
+            for (let i in items) {
+                let item = items[i];
+                xValues.push(item["Date/Time"]);
+                yValues.push(item["Total USDT"]);
+                logData += item["Date/Time"] + " = " + item["Total USDT"] + "<br/>";
+            }
+            document.getElementById('logData_VIEW_INSTANCE').innerHTML = logData;
+        })
+            .catch(error => {
+            });
+    }
+
+    console.log("mounted")
+
+    loadData_VIEW_INSTANCE();
+    setInterval(loadData_VIEW_INSTANCE, 3000);
+</script>

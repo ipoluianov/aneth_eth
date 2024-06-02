@@ -8,8 +8,8 @@ import (
 	"github.com/ipoluianov/gomisc/logger"
 )
 
-func (c *An) taskMinutesValues(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
-	logger.Println("An::anTrValue begin")
+func (c *An) taskMinutesRejected(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
+	logger.Println("An::taskMinutesCountOfUsdt begin")
 	for i := 0; i < len(txsByMin.Items); i++ {
 		src := txsByMin.Items[i]
 		var item ResultItemByMinutes
@@ -20,24 +20,24 @@ func (c *An) taskMinutesValues(result *Result, txsByMin *db.TxsByMinutes, txs []
 		cacheId := result.Code + "_" + item.DTStr + "_" + fmt.Sprint(len(src.TXS))
 
 		v := float64(0)
+
 		cacheItem := c.cache.Get(cacheId)
 		if cacheItem == nil {
 			for _, t := range src.TXS {
 				if !t.TxValid {
-					continue
+					v += 1
 				}
-				tv, _ := t.TxValue.Float64()
-				v += tv
 			}
 			c.cache.Set(cacheId, v)
 		} else {
 			v = cacheItem.Value
 		}
+
 		item.Value = v
 
 		result.ItemsByMinutes = append(result.ItemsByMinutes, &item)
 	}
 	result.Count = len(result.ItemsByMinutes)
 	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
-	logger.Println("An::anTrValue end")
+	logger.Println("An::taskMinutesCountOfUsdt end")
 }

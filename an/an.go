@@ -12,10 +12,12 @@ type An struct {
 	analytics map[string]*Result
 	mtx       sync.Mutex
 	tasks     []*Task
+	cache     *Cache
 }
 
 type AnState struct {
 	Tasks []*TaskState
+	Cache *CacheState
 }
 
 var Instance *An
@@ -27,12 +29,23 @@ func init() {
 func NewAn() *An {
 	var c An
 	c.analytics = make(map[string]*Result)
+	c.cache = NewCache()
 	c.tasks = append(c.tasks, NewTask("minutes_count", c.taskMinutesCount))
 	c.tasks = append(c.tasks, NewTask("minutes_values", c.taskMinutesValues))
+	c.tasks = append(c.tasks, NewTask("minutes_count_of_usdt", c.taskMinutesCountOfUsdt))
+	c.tasks = append(c.tasks, NewTask("minutes_rejected", c.taskMinutesRejected))
+	c.tasks = append(c.tasks, NewTask("minutes_new_contracts", c.taskMinutesNewContracts))
+	c.tasks = append(c.tasks, NewTask("minutes_erc20_transfers", c.taskMinutesERC20Transfers))
+	c.tasks = append(c.tasks, NewTask("minutes_pepe_transfers", c.taskMinutesPepeTransfers))
+
+	c.tasks = append(c.tasks, NewTask("accounts_by_send_count", c.taskAccountsBySendCount))
+	c.tasks = append(c.tasks, NewTask("accounts_by_recv_count", c.taskAccountsByRcvCount))
+	c.tasks = append(c.tasks, NewTask("new_contracts", c.taskNewContracts))
 	return &c
 }
 
 func (c *An) Start() {
+	c.cache.Start()
 	go c.ThAn()
 }
 
@@ -43,6 +56,7 @@ func (c *An) GetState() *AnState {
 		state := t.State
 		st.Tasks = append(st.Tasks, &state)
 	}
+	st.Cache = c.cache.GetState()
 	c.mtx.Unlock()
 	return &st
 }

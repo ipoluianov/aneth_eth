@@ -1,0 +1,141 @@
+<div id="app">
+    <div style="border-top: 1px solid #FFFFFF20;padding: 3px;">%VIEW_NAME%</div>
+    <div style="border: 1px solid #FFFFFF20;">
+        <canvas id="myChart_VIEW_INSTANCE" style="width:100%;height: 250px;min-height: 250px;"></canvas>
+    </div>
+    <div style="font-size: 8pt; display: none;" id="logData"></div>
+</div>
+
+<script>
+    let chartInstance_VIEW_INSTANCE;
+    let items_VIEW_INSTANCE = [];
+
+    function loadData() {
+        console.log("load data")
+        loadJson("/d/%VIEW_CODE%").then(data => {
+            //console.log(data)
+            keys = data.meta;
+            items_VIEW_INSTANCE = data.data;
+            let xValues = [];
+            let yValues = [];
+
+            for (let i in items_VIEW_INSTANCE) {
+                let item = items_VIEW_INSTANCE[i];
+                xValues.push(item["Date/Time"]);
+                yValues.push(item["Total USDT"]);
+            }
+
+
+            /*if (chartInstance) {
+                chartInstance.destroy();
+            }*/
+
+            console.log("----------")
+            console.log(xValues)
+            console.log(yValues)
+
+            if (chartInstance_VIEW_INSTANCE) {
+                chartInstance_VIEW_INSTANCE.data.labels = xValues;
+                chartInstance_VIEW_INSTANCE.data.datasets[0].data = yValues;
+                chartInstance_VIEW_INSTANCE.update();
+                console.log("updated");
+            }
+
+
+
+        })
+            .catch(error => {
+                console.log(error)
+            });
+    }
+
+    console.log("mounted")
+
+    const ctx_VIEW_INSTANCE = document.getElementById('myChart_VIEW_INSTANCE').getContext('2d');
+    chartInstance_VIEW_INSTANCE = new Chart(ctx_VIEW_INSTANCE, {
+                type: 'line', // или другой тип графика
+                data: {
+                    labels: [], // примеры меток
+                    datasets: [{
+                        label: 'My Dataset',
+                        data: [], // соответствующие данные
+                        pointRadius: 0,
+                        pointHoverRadius: 10,
+                        tension: 0,
+                        cubicInterpolationMode: 'monotone',
+                        borderColor: 'rgba(0,125,255, 1)',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    animation: false,
+                    plugins: { legend: { display: false }, },
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'YYYY-MM-DD HH:mm:ss',
+                                tooltipFormat: 'HH:mm',
+                                displayFormats: {
+                                    millisecond: 'YYYY-MM-DD HH:mm:ss',
+                                    second: 'YYYY-MM-DD HH:mm:ss',
+                                    minute: 'YYYY-MM-DD HH:mm:ss',
+                                    hour: 'YYYY-MM-DD HH:mm:ss',
+                                    day: 'YYYY-MM-DD HH:mm:ss',
+                                    week: 'YYYY-MM-DD HH:mm:ss',
+                                    month: 'YYYY-MM-DD HH:mm:ss',
+                                    quarter: 'YYYY-MM-DD HH:mm:ss',
+                                    year: 'YYYY-MM-DD HH:mm:ss'
+                                }
+                            },
+                            ticks: {
+                                major: {
+                                    enabled: true // Включаем отображение крупных тиков
+                                },
+                                source: 'auto',
+                                autoSkip: true,
+                                autoSkipPadding: 50,
+                                maxRotation: 0,
+                                sampleSize: 20
+                            },
+                            grid: {
+                                borderDash: [2, 2], // Настройка внешнего вида линий сетки
+                                color: function(context) {
+                                    if (context.tick && context.tick.major) {
+                                        return '#EEEEEE50'; // Цвет крупных тиков
+                                    }
+                                    return '#AAAAAA50'; // Цвет обычных тиков
+                                },
+                                lineWidth: function(context) {
+                                    if (context.tick && context.tick.major) {
+                                        return 1; // Толщина крупных тиков
+                                    }
+                                    return 0.5; // Толщина обычных тиков
+                                }
+                            },
+                            title: {
+                                display: false,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            },
+                            ticks: {
+                            callback: function(value) {
+                                return value;
+                            }
+                        }
+                        }
+                    }
+                }
+            });
+
+
+    loadData();
+    setInterval(loadData, 3000);
+</script>

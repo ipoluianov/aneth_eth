@@ -11,7 +11,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ipoluianov/aneth_eth/utils"
 	"github.com/ipoluianov/gomisc/logger"
 )
@@ -35,6 +37,10 @@ type DB struct {
 	existingBlocks    map[uint64]struct{}
 	blocksCache       map[uint64]*Block
 
+	receiptsReceivedCount int
+	receiptsReceivedError int
+	receiptsMismatchError int
+
 	// Runtime
 	client *ethclient.Client
 }
@@ -42,7 +48,8 @@ type DB struct {
 var Instance *DB
 
 func init() {
-	Instance = NewDB("ETH", "https://eth.public-rpc.com", 2000)
+	//Instance = NewDB("ETH", "https://eth.public-rpc.com", 2000)
+	Instance = NewDB("ETH", "https://ethereum.publicnode.com", 2000)
 }
 
 func NewDB(network string, url string, periodMs int) *DB {
@@ -155,6 +162,9 @@ func (c *DB) GetState() (dbState *DbState) {
 	dbState.CountOfBlocks = len(c.blocksCache)
 	dbState.Status = c.status
 	dbState.SubStatus = c.substatus
+	dbState.ReceiptsReceivedCount = c.receiptsReceivedCount
+	dbState.ReceiptsReceivedError = c.receiptsReceivedError
+	dbState.ReceiptsMismatchError = c.receiptsMismatchError
 	blocksArray := make([]*Block, 0)
 	for _, bl := range c.blocksCache {
 		blocksArray = append(blocksArray, bl)
@@ -402,18 +412,68 @@ func (c *DB) loadNextBlock() {
 		return
 	}
 
+	receipts, err := c.client.BlockReceipts(context.Background(), rpc.BlockNumberOrHashWithHash(block.Hash(), true))
+	if err != nil {
+		logger.Println(c.network, "Getting Latest Block Repeipts Error:", err)
+		c.receiptsReceivedError += 1
+		return
+	}
+	logger.Println("Getting Block Receipt OK", block.Number())
+	c.receiptsReceivedCount += 1
+
 	var b Block
 	b.Number = blockNumberToLoad
 	b.Time = block.Header().Time
 
 	for _, t := range block.Transactions() {
+		var receipt *types.Receipt
+		for _, r := range receipts {
+			if r.TxHash.String() == t.Hash().String() {
+				receipt = r
+				break
+			}
+		}
+
+		if receipt == nil {
+			logger.Println("Receipt not found. TxHash:", t.Hash().String())
+			c.receiptsMismatchError++
+			return
+		}
+
 		var tx Tx
 		tx.BlNumber = uint64(b.Number)
 		tx.BlDT = b.Time
-		tx.TxFrom = utils.TrFrom(t)
-		tx.TxTo = t.To()
-		tx.TxData = t.Data()
+		tx.TxFrom = utils.TrFrom(t).String()
+		if t.To() != nil {
+			tx.TxTo = t.To().String()
+		}
+
+		if len(t.Data()) >= 4 {
+			tx.TxDataMethod = t.Data()[:4]
+		}
+		if len(t.Data()) >= 4+32 {
+			tx.TxDataP1 = t.Data()[4 : 4+32]
+		}
+		if len(t.Data()) >= 4+32+32 {
+			tx.TxDataP2 = t.Data()[4+32 : 4+32+32]
+		}
+		if len(t.Data()) >= 4+32+32+32 {
+			tx.TxDataP3 = t.Data()[4+32+32 : 4+32+32+32]
+		}
+		if len(t.Data()) >= 4+32+32+32+32 {
+			tx.TxDataP4 = t.Data()[4+32+32+32 : 4+32+32+32+32]
+		}
+
 		tx.TxValue = t.Value()
+		tx.TxValid = receipt.Status == 1
+		tx.TxStatus = receipt.Status
+		if len(receipt.ContractAddress) > 0 {
+			tx.TxNewContract = receipt.ContractAddress.String()
+			if tx.TxNewContract == "0x0000000000000000000000000000000000000000" {
+				tx.TxNewContract = ""
+			}
+		}
+		tx.TxGasUsed = receipt.GasUsed
 		b.Txs = append(b.Txs, &tx)
 	}
 

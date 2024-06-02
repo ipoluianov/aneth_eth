@@ -7,8 +7,9 @@ type ResultItemByMinutes struct {
 	Value float64
 }
 
-type ResultItemString struct {
-	Text string
+type ResultItemTable struct {
+	Text   string
+	Values []float64
 }
 
 type Result struct {
@@ -16,5 +17,5 @@ type Result struct {
 	Count           int
 	CurrentDateTime string
 	ItemsByMinutes  []*ResultItemByMinutes
-	ItemsString     []ResultItemString
+	ItemsTable      []*ResultItemTable
 }

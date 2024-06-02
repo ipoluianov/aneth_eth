@@ -26,3 +26,6 @@ aneth_eth.exe
 data/
 .vscode/
 logs/
+
+private.key
+bundle.crt
