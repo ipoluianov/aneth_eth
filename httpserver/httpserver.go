@@ -138,6 +138,7 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if strings.Contains(r.RequestURI, "style.css") {
+		w.Header().Add("Content-Type", "text/css")
 		w.Write([]byte(static.FileStyleCss))
 		return
 	}
