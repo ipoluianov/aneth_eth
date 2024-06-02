@@ -193,6 +193,14 @@ func (c *HttpServer) processPage(w http.ResponseWriter, r *http.Request, pageCod
 		content = c.getHomePage()
 	}
 
+	if pageCode == "legal_user_agreement" {
+		content = static.FileUserAgreement
+	}
+
+	if pageCode == "legal_policy" {
+		content = static.FilePrivatePolicy
+	}
+
 	if pageCode == "map" {
 		content = c.getMap()
 		title = "Site Map - " + c.siteName

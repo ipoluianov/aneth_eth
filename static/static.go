@@ -22,3 +22,9 @@ var FileViewChart string
 
 //go:embed style.css
 var FileStyleCss string
+
+//go:embed private_policy.html
+var FilePrivatePolicy string
+
+//go:embed user_agreement.html
+var FileUserAgreement string
