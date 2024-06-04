@@ -62,7 +62,7 @@ func NewDB(network string, url string, periodMs int) *DB {
 	c.status = "init"
 	c.latestBlockNumber = 0
 
-	c.timeDepth = uint64(86400)
+	c.timeDepth = uint64(86400) + 10*60
 	secondsPerBlock := uint64(12)
 	c.blockNumberDepth = c.timeDepth / secondsPerBlock
 
@@ -348,7 +348,7 @@ func (c *DB) GroupByMinutes(beginDT uint64, endDT uint64, txs []*Tx) *TxsByMinut
 
 func (c *DB) GetLatestTransactions() (*TxsByMinutes, []*Tx) {
 	lastSeconds := uint64(24 * 3600)
-	lastTxDt := uint64(time.Now().UTC().Unix())
+	lastTxDt := uint64(time.Now().UTC().Unix() - 120) // Minus one minute
 	firstTxDt := uint64(lastTxDt - lastSeconds)
 	firstTxDt = firstTxDt / 60
 	firstTxDt = firstTxDt * 60

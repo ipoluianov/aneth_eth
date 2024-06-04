@@ -33,7 +33,7 @@ func (c *An) taskMinutesValues(result *Result, txsByMin *db.TxsByMinutes, txs []
 		} else {
 			v = cacheItem.Value
 		}
-		item.Value = v
+		item.Value = v / 1000000000000000000
 
 		result.TimeChart.Items = append(result.TimeChart.Items, &item)
 	}

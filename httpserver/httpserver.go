@@ -304,17 +304,48 @@ func (c *HttpServer) getHomePage() string {
 		result += tmp
 	}
 
-	fAddHeader := func(name string) {
+	fAddHeader2 := func(name string) {
 		tmp := `    <h2>%NAME%</h2>` + "\r\n"
 		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
 		result += tmp
 	}
 
-	fAddHeader("ETH.U00.IO")
+	fAddHeader3 := func(name string) {
+		tmp := `    <h3>%NAME%</h3>` + "\r\n"
+		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
+		result += tmp
+	}
+
+	fAddHeader2("ETH.U00.IO")
 	fAddText("ETH analytics")
 
 	tasks := an.Instance.GetTasks()
+	groups := an.Instance.GetTaskGroups()
+
+	taskWithGroup := make(map[string]struct{})
+
+	for _, gr := range groups {
+		fAddHeader3(gr.Name)
+		for _, task := range tasks {
+			found := false
+			for _, taskInGroup := range gr.Tasks {
+				if task.Code == taskInGroup {
+					found = true
+					break
+				}
+			}
+			if found {
+				fAddItem(task.Name, "/p/"+task.Code)
+				taskWithGroup[task.Code] = struct{}{}
+			}
+		}
+	}
+
+	fAddHeader3("Other reports")
 	for _, task := range tasks {
+		if _, ok := taskWithGroup[task.Code]; ok {
+			continue
+		}
 		fAddItem(task.Name, "/p/"+task.Code)
 	}
 
