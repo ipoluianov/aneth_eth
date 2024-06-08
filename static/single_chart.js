@@ -449,13 +449,13 @@ class MetricsChart {
         ////////////////////////////////////////////////////
         //   LOGO  /////////////////////////////////////////
         ctx.fillStyle = this.colorBackground;
-        //ctx.beginPath();
         ctx.fillRect(0, 0, this.width, 20);
         ctx.fillStyle = this.colorSeries;
         ctx.font = '16px ' + this.fontName
         ctx.fillText(this.name, 5, 14);
         ctx.font = '16px ' + this.fontName
-        ctx.fillText("u00.io - Blockchain analytics", this.width - 290, 14);
+        ctx.fillStyle = "#555555";
+        ctx.fillText("u00.io - Blockchain analytics", this.width - 280, 14);
         ////////////////////////////////////////////////////
 
         ctx.restore();
