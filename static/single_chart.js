@@ -19,6 +19,7 @@ class MetricsChart {
         this.widthDayBorder = 1.5;
         this.widthSeries = 1.5;
         this.fontName = 'Roboto Mono'
+        this.drawHorScale = true;
         this.canvas = document.createElement('canvas');
         this.context = this.canvas.getContext('2d');
         this.canvas.height = this.height;
@@ -30,6 +31,12 @@ class MetricsChart {
     resize() {
         this.width = this.container.clientWidth;
         this.canvas.width = this.width;
+        this.drawChart();
+    }
+
+    setDisplayMinMax(displayMin, displayMax) {
+        this.displayMin = displayMin;
+        this.displayMax = displayMax;
         this.drawChart();
     }
 
@@ -338,79 +345,83 @@ class MetricsChart {
         }
         ctx.restore();
 
-        for (
-            let xScaleValue = this.displayMin - (this.displayMin % xScaleStep);
-            xScaleValue < this.displayMax;
-            xScaleValue += xScaleStep) {
+           for (
+                let xScaleValue = this.displayMin - (this.displayMin % xScaleStep);
+                xScaleValue < this.displayMax;
+                xScaleValue += xScaleStep) {
 
-            const x = this.getXByValue(xScaleValue);
+                const x = this.getXByValue(xScaleValue);
 
-            ctx.save();
-            ctx.rect(this.leftScaleWidth, 0, this.width - this.leftScaleWidth, this.height - this.bottomScaleheight);
-            ctx.clip();
+                ctx.save();
+                ctx.rect(this.leftScaleWidth, 0, this.width - this.leftScaleWidth, this.height - this.bottomScaleheight);
+                ctx.clip();
 
-            ctx.beginPath();
-            ctx.moveTo(x, this.height - this.bottomScaleheight);
-            ctx.lineTo(x, 0);
-            ctx.strokeStyle = this.colorGrid;
-            ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, this.height - this.bottomScaleheight);
+                ctx.lineTo(x, 0);
+                ctx.strokeStyle = this.colorGrid;
+                ctx.stroke();
 
-            ctx.restore();
+                ctx.restore();
 
-            const timeLabel = this.fromUnixTime(xScaleValue);
-            const dateLabel = this.fromUnixTimeDate(xScaleValue);
+                if (this.drawHorScale) {
 
-            ctx.save();
-            ctx.rect(this.leftScaleWidth, this.height - this.bottomScaleheight, this.width - this.leftScaleWidth, this.bottomScaleheight);
-            ctx.clip();
-            ctx.fillStyle = this.colorScalesText;
-            ctx.fillText(timeLabel, x - 18, this.height - this.bottomScaleheight + 15);
-            ctx.restore();
-        }
+                const timeLabel = this.fromUnixTime(xScaleValue);
+
+                ctx.save();
+                ctx.rect(this.leftScaleWidth, this.height - this.bottomScaleheight, this.width - this.leftScaleWidth, this.bottomScaleheight);
+                ctx.clip();
+                ctx.fillStyle = this.colorScalesText;
+                ctx.fillText(timeLabel, x - 18, this.height - this.bottomScaleheight + 15);
+                ctx.restore();
+                }
+            }
 
         // Dates blocks
-        for (let i in dates) {
-            const dateLabel = this.fromUnixTimeDate(dates[i]);
-            let posXbegin = this.getXByValue(dates[i]);
-            let posXend = this.getXByValue(dates[i] + 86400);
-            ctx.save();
-            ctx.rect(this.leftScaleWidth, this.height - this.bottomScaleheight, this.width - this.leftScaleWidth, this.bottomScaleheight);
-            ctx.clip();
+        if (this.drawHorScale) {
+            for (let i in dates) {
+                const dateLabel = this.fromUnixTimeDate(dates[i]);
+                let posXbegin = this.getXByValue(dates[i]);
+                let posXend = this.getXByValue(dates[i] + 86400);
+                ctx.save();
+                ctx.rect(this.leftScaleWidth, this.height - this.bottomScaleheight, this.width - this.leftScaleWidth, this.bottomScaleheight);
+                ctx.clip();
 
-            let y = this.height - this.bottomScaleheight + 25;
+                let y = this.height - this.bottomScaleheight + 25;
 
-            ctx.beginPath();
-            ctx.moveTo(posXbegin + 2, y);
-            ctx.lineTo(posXend - 2, y);
-            ctx.strokeStyle = this.colorScalesText;
-            ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(posXbegin + 2, y);
+                ctx.lineTo(posXend - 2, y);
+                ctx.strokeStyle = this.colorScalesText;
+                ctx.stroke();
 
-            ctx.beginPath();
-            ctx.moveTo(posXbegin + 2, y);
-            ctx.lineTo(posXbegin + 2, y + 10);
-            ctx.strokeStyle = this.colorScalesText;
-            ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(posXbegin + 2, y);
+                ctx.lineTo(posXbegin + 2, y + 10);
+                ctx.strokeStyle = this.colorScalesText;
+                ctx.stroke();
 
-            ctx.beginPath();
-            ctx.moveTo(posXend - 2, y);
-            ctx.lineTo(posXend - 2, y + 10);
-            ctx.strokeStyle = this.colorScalesText;
-            ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(posXend - 2, y);
+                ctx.lineTo(posXend - 2, y + 10);
+                ctx.strokeStyle = this.colorScalesText;
+                ctx.stroke();
 
-            let textPos = posXbegin + (posXend - posXbegin) / 2;
-            if (posXbegin < this.leftScaleWidth) {
-                textPos = this.leftScaleWidth + (posXend - this.leftScaleWidth) / 2;
+                let textPos = posXbegin + (posXend - posXbegin) / 2;
+                if (posXbegin < this.leftScaleWidth) {
+                    textPos = this.leftScaleWidth + (posXend - this.leftScaleWidth) / 2;
+                }
+                if (posXend > this.width) {
+                    textPos = posXbegin + (this.width - posXbegin) / 2;
+                }
+
+                textPos = textPos - 30;
+
+                ctx.fillStyle = this.colorScalesText;
+                ctx.fillText(dateLabel, textPos, y + 12);
+
+                ctx.restore();
             }
-            if (posXend > this.width) {
-                textPos = posXbegin + (this.width - posXbegin) / 2;
-            }
-
-            textPos = textPos - 30;
-
-            ctx.fillStyle = this.colorScalesText;
-            ctx.fillText(dateLabel, textPos, y + 12);
-
-            ctx.restore();
         }
 
 

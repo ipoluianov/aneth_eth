@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -169,6 +170,13 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if reqType == "c" {
+		if len(parts) == 2 {
+			c.processComplex(w, r, parts[1])
+			return
+		}
+	}
+
 	if reqType == "d" {
 		if len(parts) < 2 {
 			w.WriteHeader(500)
@@ -220,7 +228,29 @@ func (c *HttpServer) processPage(w http.ResponseWriter, _ *http.Request, pageCod
 	}
 
 	if len(content) == 0 {
-		content, title, description = c.getPage(pageCode, title, description)
+		content, title, description = c.getPage(pageCode, title, description, "default", 400, true, true, true, true)
+	}
+
+	result = strings.ReplaceAll(result, "%TITLE%", title)
+	result = strings.ReplaceAll(result, "%DESCRIPTION%", description)
+	result = strings.ReplaceAll(result, "%CONTENT%", content)
+
+	w.Write([]byte(result))
+}
+
+func (c *HttpServer) processComplex(w http.ResponseWriter, _ *http.Request, complexCode string) {
+	result := string(static.FileIndex)
+
+	title := c.siteName
+	description := c.siteDescription
+
+	content := ""
+
+	if complexCode == "eth" {
+		p1, _, _ := c.getPage("number-of-transactions-per-minute", title, description, "instance1", 200, false, false, false, false)
+		content += p1
+		p2, _, _ := c.getPage("USDT-token-transfers-volume-per-minute", title, description, "instance2", 200, false, false, false, true)
+		content += p2
 	}
 
 	result = strings.ReplaceAll(result, "%TITLE%", title)
@@ -266,7 +296,7 @@ func (c *HttpServer) getMap() string {
 	return result
 }
 
-func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescription string) (result string, title string, description string) {
+func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescription string, instance string, chartHeight int, showTitle, showDesc bool, showText bool, showHorScale bool) (result string, title string, description string) {
 	title = defaultTitle
 	description = defaultDescription
 	task := an.Instance.GetTask(code)
@@ -285,11 +315,35 @@ func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescriptio
 	title = task.Name + " - " + c.siteName
 	description = task.Description + " " + defaultDescription
 
+	displayDescription := task.Description
+	displayText := task.Text
+	displayName := task.Name
+
+	displayStyleName := "none"
+	if showTitle {
+		displayStyleName = "block"
+	}
+
+	displayStyleDesc := "none"
+	if showTitle {
+		displayStyleDesc = "block"
+	}
+
+	displayStyleText := "none"
+	if showTitle {
+		displayStyleText = "block"
+	}
+
 	result = strings.ReplaceAll(result, "%VIEW_CODE%", task.Code)
-	result = strings.ReplaceAll(result, "%VIEW_NAME%", task.Name)
-	result = strings.ReplaceAll(result, "%VIEW_DESC%", task.Description)
-	result = strings.ReplaceAll(result, "%VIEW_TEXT%", task.Text)
-	result = strings.ReplaceAll(result, "VIEW_INSTANCE", "default")
+	result = strings.ReplaceAll(result, "%VIEW_NAME%", displayName)
+	result = strings.ReplaceAll(result, "%VIEW_DESC%", displayDescription)
+	result = strings.ReplaceAll(result, "%VIEW_TEXT%", displayText)
+	result = strings.ReplaceAll(result, "VIEW_INSTANCE", instance)
+	result = strings.ReplaceAll(result, "VIEW_DISPLAY_NAME", displayStyleName)
+	result = strings.ReplaceAll(result, "VIEW_DISPLAY_DESC", displayStyleDesc)
+	result = strings.ReplaceAll(result, "VIEW_DISPLAY_TEXT", displayStyleText)
+	result = strings.ReplaceAll(result, "VIEW_CHART_HEIGHT", fmt.Sprint(chartHeight))
+	result = strings.ReplaceAll(result, "VIEW_DRAW_HOR_SCALE", fmt.Sprint(showHorScale))
 
 	return
 }

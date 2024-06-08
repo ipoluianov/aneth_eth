@@ -1,11 +1,8 @@
 <div id="app">
-    <h1>%VIEW_NAME%</h1>
-    <div style="padding-bottom: 10px;">%VIEW_DESC%</div>
-    <!--div style="border: 1px solid #FFFFFF20;">
-        <canvas id="myChart_VIEW_INSTANCE" style="width:100%;height: 250px;min-height: 250px;"></canvas>
-    </div-->
-    <div id="chartContainer"></div>
-    <div style="padding-top: 10px;">%VIEW_TEXT%</div>
+    <h1 style="display: VIEW_DISPLAY_NAME">%VIEW_NAME%</h1>
+    <div style="padding-bottom: 0px; display: VIEW_DISPLAY_DESC;">%VIEW_DESC%</div>
+    <div id="chartContainer_VIEW_INSTANCE"></div>
+    <div style="padding-top: 0px;display: VIEW_DISPLAY_TEXT;">%VIEW_TEXT%</div>
 </div>
 
 <script>
@@ -13,16 +10,22 @@
     let items_VIEW_INSTANCE = [];
 
     function toUnixTime(dateString) {
-            const [datePart, timePart] = dateString.split(' ');
-            const [year, month, day] = datePart.split('-').map(Number);
-            const [hours, minutes, seconds] = timePart.split(':').map(Number);
-            //const date = new Date(year, month - 1, day, hours, minutes, seconds);
-            const date = this.getUnixTimeInUTCFromParams(year, month, day, hours, minutes, seconds);
-            return Math.floor(date);
-        }
+        const [datePart, timePart] = dateString.split(' ');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes, seconds] = timePart.split(':').map(Number);
+        //const date = new Date(year, month - 1, day, hours, minutes, seconds);
+        const date = this.getUnixTimeInUTCFromParams(year, month, day, hours, minutes, seconds);
+        return Math.floor(date);
+    }
+
+    function getUnixTimeInUTCFromParams(year, month, day, hours, minutes, seconds) {
+        const utcTime = Date.UTC(year, month - 1, day, hours, minutes, seconds);
+        return Math.floor(utcTime / 1000);
+    }
 
 
-    function loadData1() {
+
+    function loadData_VIEW_INSTANCE() {
         console.log("load data")
         loadJson("/d/%VIEW_CODE%").then(data => {
             items_VIEW_INSTANCE = data.TimeChart.Items;
@@ -36,15 +39,20 @@
             }
 
             if (chartInstance_VIEW_INSTANCE) {
+                const now = new Date();
                 let xData = [];
                 let yData = [];
                 for (let i in xValues) {
                     let dt = toUnixTime(xValues[i]);
-                    const now = new Date();
                     const timezoneOffsetInSeconds = now.getTimezoneOffset() * 60;
                     const unixTimeWithTimezone = Math.floor((dt * 1000 - timezoneOffsetInSeconds * 1000) / 1000);
                     xData.push(unixTimeWithTimezone);
                 }
+
+                const timezoneOffsetInSeconds = now.getTimezoneOffset() * 60;
+                const unixTimeWithTimezone = Math.floor((now.getTime() - timezoneOffsetInSeconds * 1000) / 1000);
+
+                chartInstance_VIEW_INSTANCE.setDisplayMinMax(unixTimeWithTimezone - 86400, unixTimeWithTimezone);
                 chartInstance_VIEW_INSTANCE.setData(xData, yValues);
             }
         })
@@ -57,38 +65,40 @@
     console.log("mounted")
 
 
-
-    function getUnixTimeInUTCFromParams(year, month, day, hours, minutes, seconds) {
-        const utcTime = Date.UTC(year, month - 1, day, hours, minutes, seconds);
-        return Math.floor(utcTime / 1000);
-    }
-
-    function toUnixTime(dateString) {
+    /*function toUnixTime(dateString) {
         const [datePart, timePart] = dateString.split(' ');
         const [year, month, day] = datePart.split('-').map(Number);
         const [hours, minutes, seconds] = timePart.split(':').map(Number);
         //const date = new Date(year, month - 1, day, hours, minutes, seconds);
         const date = this.getUnixTimeInUTCFromParams(year, month, day, hours, minutes, seconds);
         return Math.floor(date);
+    }*/
+
+    function create_VIEW_INSTANCE() {
+        const now = new Date();
+        //const unixTimeNow = Math.floor(now.getTime() / 1000);
+        const timezoneOffsetInSeconds = now.getTimezoneOffset() * 60;
+        const unixTimeWithTimezone = Math.floor((now.getTime() - timezoneOffsetInSeconds * 1000) / 1000);
+
+
+        chartInstance_VIEW_INSTANCE = new MetricsChart(
+            '%VIEW_NAME%',
+            'chartContainer_VIEW_INSTANCE',
+            [],
+            [],
+            VIEW_CHART_HEIGHT,
+            unixTimeWithTimezone - 86400,
+            unixTimeWithTimezone,
+        );
+        chartInstance_VIEW_INSTANCE.drawHorScale = VIEW_DRAW_HOR_SCALE;
+        if (VIEW_DRAW_HOR_SCALE) {
+            chartInstance_VIEW_INSTANCE.bottomScaleheight = 0;
+        }
+
+        loadData_VIEW_INSTANCE();
+        setInterval(loadData_VIEW_INSTANCE, 3000);
     }
 
-    const now = new Date();
-    const unixTimeNow = Math.floor(now.getTime() / 1000);
-    const timezoneOffsetInSeconds = now.getTimezoneOffset() * 60;
-    const unixTimeWithTimezone = Math.floor((now.getTime() - timezoneOffsetInSeconds * 1000) / 1000);
+    create_VIEW_INSTANCE();
 
-
-    chartInstance_VIEW_INSTANCE = new MetricsChart(
-        '%VIEW_NAME%',
-        'chartContainer',
-        [],
-        [],
-        400,
-        unixTimeWithTimezone - 86400,
-        unixTimeWithTimezone,
-    );
-
-
-    loadData1();
-    setInterval(loadData1, 3000);
 </script>
