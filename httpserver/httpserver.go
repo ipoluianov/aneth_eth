@@ -143,6 +143,12 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.Contains(r.RequestURI, "single_chart.js") {
+		// w.Header().Add("Content-Type", "text/css")
+		w.Write([]byte(static.FileSingleChart))
+		return
+	}
+
 	parts := strings.FieldsFunc(r.RequestURI, func(r rune) bool {
 		return r == '/'
 	})

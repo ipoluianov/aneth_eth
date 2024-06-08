@@ -28,3 +28,6 @@ var FilePrivatePolicy string
 
 //go:embed user_agreement.html
 var FileUserAgreement string
+
+//go:embed single_chart.js
+var FileSingleChart string
