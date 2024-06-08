@@ -9,6 +9,7 @@ type ResultTableColumn struct {
 }
 
 type ResultTable struct {
+	Name    string
 	Columns []*ResultTableColumn
 	Items   []*ResultTableItem
 }

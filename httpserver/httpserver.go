@@ -182,7 +182,7 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
-func (c *HttpServer) processPage(w http.ResponseWriter, r *http.Request, pageCode string) {
+func (c *HttpServer) processPage(w http.ResponseWriter, _ *http.Request, pageCode string) {
 	result := string(static.FileIndex)
 
 	title := c.siteName

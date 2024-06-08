@@ -42,6 +42,8 @@ func (c *An) taskMinutesTokenTransfers(result *Result, txsByMin *db.TxsByMinutes
 	var div, e = big.NewInt(10), big.NewInt(int64(token.Decimals))
 	div.Exp(div, e, nil)
 
+	maximums := make([]*ResultTimeChartItem, 0)
+
 	for i := 0; i < len(txsByMin.Items); i++ {
 		src := txsByMin.Items[i]
 		var item ResultTimeChartItem
@@ -72,8 +74,13 @@ func (c *An) taskMinutesTokenTransfers(result *Result, txsByMin *db.TxsByMinutes
 				}
 
 			}
-			v = v.Div(v, div)
-			vFloat, _ := v.Float64()
+			bigFloatValue := new(big.Float).SetInt(v)
+			powerOfTen := new(big.Float).SetFloat64(1)
+			for i := 0; i < token.Decimals; i++ {
+				powerOfTen.Mul(powerOfTen, big.NewFloat(10))
+			}
+			bigFloatValue = bigFloatValue.Quo(bigFloatValue, powerOfTen)
+			vFloat, _ = bigFloatValue.Float64()
 			c.cache.Set(cacheId, vFloat)
 		} else {
 			vFloat = cacheItem.Value
@@ -82,6 +89,11 @@ func (c *An) taskMinutesTokenTransfers(result *Result, txsByMin *db.TxsByMinutes
 		item.Value = vFloat
 
 		result.TimeChart.Items = append(result.TimeChart.Items, &item)
+
+		if len(maximums) < 10 {
+			maximums = append(maximums, &item)
+		} else {
+		}
 	}
 	result.Count = len(result.TimeChart.Items)
 	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")

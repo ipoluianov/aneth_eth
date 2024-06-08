@@ -11,4 +11,5 @@ type ResultTimeChart struct {
 	VAxisName string
 	HAxisName string
 	Items     []*ResultTimeChartItem
+	Tables    []*ResultTable
 }
