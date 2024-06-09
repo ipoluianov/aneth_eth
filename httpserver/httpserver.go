@@ -238,20 +238,35 @@ func (c *HttpServer) processPage(w http.ResponseWriter, _ *http.Request, pageCod
 	w.Write([]byte(result))
 }
 
+func (c *HttpServer) getComplex(complexCode string) string {
+	content := ""
+	title := c.siteName
+	description := c.siteDescription
+	if complexCode == "index" {
+		p1, _, _ := c.getPage("eth-price", title, description, "instance1", 200, false, false, false, false)
+		content += p1
+		p2, _, _ := c.getPage("btc-price", title, description, "instance2", 200, false, false, false, true)
+		content += p2
+	}
+
+	if complexCode == "eth" {
+		p1, _, _ := c.getPage("eth-price", title, description, "instance1", 300, false, false, false, false)
+		content += p1
+		p2, _, _ := c.getPage("eth-transfer-volume-per-minute", title, description, "instance2", 300, false, false, false, false)
+		content += p2
+		p3, _, _ := c.getPage("number-of-transactions-per-minute", title, description, "instance3", 300, false, false, false, true)
+		content += p3
+	}
+	return content
+}
+
 func (c *HttpServer) processComplex(w http.ResponseWriter, _ *http.Request, complexCode string) {
 	result := string(static.FileIndex)
 
 	title := c.siteName
 	description := c.siteDescription
 
-	content := ""
-
-	if complexCode == "eth" {
-		p1, _, _ := c.getPage("number-of-transactions-per-minute", title, description, "instance1", 200, false, false, false, false)
-		content += p1
-		p2, _, _ := c.getPage("USDT-token-transfers-volume-per-minute", title, description, "instance2", 200, false, false, false, true)
-		content += p2
-	}
+	content := c.getComplex(complexCode)
 
 	result = strings.ReplaceAll(result, "%TITLE%", title)
 	result = strings.ReplaceAll(result, "%DESCRIPTION%", description)
@@ -350,6 +365,8 @@ func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescriptio
 
 func (c *HttpServer) getHomePage() string {
 	result := ""
+
+	result += c.getComplex("index")
 
 	fAddItem := func(name string, url string) {
 		tmp := `    <li><a href="%URL%">%NAME%</a></li>` + "\r\n"

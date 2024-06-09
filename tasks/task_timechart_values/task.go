@@ -1,18 +1,32 @@
-package an
+package task_timechart_values
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/ipoluianov/aneth_eth/cache"
+	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
 	"github.com/ipoluianov/gomisc/logger"
 )
 
-func (c *An) taskMinutesValues(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
+func New() *common.Task {
+	var c common.Task
+	c.Code = "eth-transfer-volume-per-minute"
+	c.Name = "ETH transfer volume per minute"
+	c.Type = "timechart"
+	c.Fn = Run
+	c.Description = "The graph shows the total volume of ETH transfers. These can be either regular transfers between accounts or transfers to smart merchant addresses."
+	c.Text = ""
+	c.Ticker = ""
+	return &c
+}
+
+func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
 	logger.Println("An::anTrValue begin")
 	for i := 0; i < len(txsByMin.Items); i++ {
 		src := txsByMin.Items[i]
-		var item ResultTimeChartItem
+		var item common.ResultTimeChartItem
 		item.Index = i
 		item.DT = src.DT
 		item.DTStr = time.Unix(int64(item.DT), 0).UTC().Format("2006-01-02 15:04:05")
@@ -20,7 +34,7 @@ func (c *An) taskMinutesValues(result *Result, txsByMin *db.TxsByMinutes, txs []
 		cacheId := result.Code + "_" + item.DTStr + "_" + fmt.Sprint(len(src.TXS))
 
 		v := float64(0)
-		cacheItem := c.cache.Get(cacheId)
+		cacheItem := cache.Instance.Get(cacheId)
 		if cacheItem == nil {
 			for _, t := range src.TXS {
 				if !t.TxValid {
@@ -29,7 +43,7 @@ func (c *An) taskMinutesValues(result *Result, txsByMin *db.TxsByMinutes, txs []
 				tv, _ := t.TxValue.Float64()
 				v += tv
 			}
-			c.cache.Set(cacheId, v)
+			cache.Instance.Set(cacheId, v)
 		} else {
 			v = cacheItem.Value
 		}

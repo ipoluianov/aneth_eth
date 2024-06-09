@@ -1,15 +1,28 @@
-package an
+package task_table_new_contracts
 
 import (
 	"fmt"
 	"sort"
 	"time"
 
+	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
 	"github.com/ipoluianov/gomisc/logger"
 )
 
-func (c *An) taskNewContracts(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
+func New() *common.Task {
+	var c common.Task
+	c.Code = "new-eth-contracts-list"
+	c.Name = "New ETH Contracts - Last 24 hours"
+	c.Type = "table"
+	c.Fn = Run
+	c.Description = "List of new smart contracts"
+	c.Text = ""
+	c.Ticker = ""
+	return &c
+}
+
+func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
 	logger.Println("An::taskNewContracts begin")
 
 	type Item struct {
@@ -45,13 +58,13 @@ func (c *An) taskNewContracts(result *Result, txsByMin *db.TxsByMinutes, txs []*
 		return items[i].DT < items[j].DT
 	})
 
-	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Contract Address"})
-	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Date/Time"})
-	result.Table.Columns = append(result.Table.Columns, &ResultTableColumn{"Gas Used"})
+	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: "Contract Address"})
+	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: "Date/Time"})
+	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: "Gas Used"})
 
 	for i := 0; i < len(items); i++ {
 		item := items[i]
-		var tableItem ResultTableItem
+		var tableItem common.ResultTableItem
 		tableItem.Values = append(tableItem.Values, item.ContractAddress)
 		tableItem.Values = append(tableItem.Values, item.DTStr)
 		tableItem.Values = append(tableItem.Values, fmt.Sprint(item.GasUsed))

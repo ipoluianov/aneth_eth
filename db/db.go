@@ -71,6 +71,7 @@ func NewDB(network string, url string, periodMs int) *DB {
 
 func (c *DB) Start() {
 	c.status = "starting"
+
 	var err error
 	c.client, err = ethclient.Dial(c.url)
 	if err != nil {

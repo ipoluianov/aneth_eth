@@ -1,4 +1,4 @@
-package an
+package common
 
 type ResultTableItem struct {
 	Values []string

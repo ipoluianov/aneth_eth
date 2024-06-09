@@ -1,4 +1,4 @@
-package an
+package common
 
 type ResultParameter struct {
 	Text  string

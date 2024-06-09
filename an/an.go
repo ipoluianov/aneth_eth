@@ -4,22 +4,32 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ipoluianov/aneth_eth/cache"
+	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
+	"github.com/ipoluianov/aneth_eth/tasks/task_table_new_contracts"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_count"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_erc20_transfers"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_new_contracts"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_price"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_rejected"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_token_transfers_number"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_token_transfers_values"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_values"
 	"github.com/ipoluianov/aneth_eth/tokens"
 	"github.com/ipoluianov/gomisc/logger"
 )
 
 type An struct {
-	analytics  map[string]*Result
+	analytics  map[string]*common.Result
 	mtx        sync.Mutex
-	tasks      []*Task
-	cache      *Cache
+	tasks      []*common.Task
 	taskGroups []*TaskGroup
 }
 
 type AnState struct {
-	Tasks []*TaskState
-	Cache *CacheState
+	Tasks []*common.TaskState
+	Cache *cache.CacheState
 }
 
 type TaskGroup struct {
@@ -36,14 +46,13 @@ func init() {
 
 func NewAn() *An {
 	var c An
-	c.analytics = make(map[string]*Result)
-	c.cache = NewCache()
+	c.analytics = make(map[string]*common.Result)
 
 	return &c
 }
 
 func (c *An) Start() {
-	groupBase := &TaskGroup{}
+	/*groupBase := &TaskGroup{}
 	groupBase.Code = "task-group-base"
 	groupBase.Name = "Base reports"
 	groupBase.Tasks = append(groupBase.Tasks, "number-of-transactions-per-minute")
@@ -51,60 +60,26 @@ func (c *An) Start() {
 	groupBase.Tasks = append(groupBase.Tasks, "number-of-rejected-transactions-per-minute")
 	groupBase.Tasks = append(groupBase.Tasks, "number-of-new-contracts-per-minute")
 	groupBase.Tasks = append(groupBase.Tasks, "number-of-erc20-transfers-per-minute")
-	c.taskGroups = append(c.taskGroups, groupBase)
+	c.taskGroups = append(c.taskGroups, groupBase)*/
 
-	// TimeCharts
-	c.tasks = append(c.tasks, NewTask("number-of-transactions-per-minute", "timechart", "Number of transactions per minute", c.taskMinutesCount, `
-	Number of transactions by minute on the chart. Only successful transactions are displayed. This data indicates the overall activity of the network.`, `
-	`))
-	c.tasks = append(c.tasks, NewTask("eth-transfer-volume-per-minute", "timechart", "ETH transfer volume per minute", c.taskMinutesValues, `
-	The graph shows the total volume of ETH transfers. These can be either regular transfers between accounts or transfers to smart merchant addresses.`, `
-	`))
-	c.tasks = append(c.tasks, NewTask("number-of-rejected-transactions-per-minute", "timechart", "Number of rejected transactions per minute", c.taskMinutesRejected, `
-	Displays the number of unsuccessful transactions recently. An increase in the number of such transactions indicates possible unsuccessful attacks on the network.`, `
-	The graph shows the number of transactions that, after being included in a block, were rejected as a result of executing a smart contract, per minute. Possible reasons for rejection include incorrect call parameters, insufficient funds to complete the operation, errors in the smart contract logic, and failure to meet contract conditions.`))
-	c.tasks = append(c.tasks, NewTask("number-of-new-contracts-per-minute", "timechart", "Number of new contracts per minute", c.taskMinutesNewContracts, `
-	The graph displays the number of transactions that create new smart contracts on the network.`, `
-	`))
-	c.tasks = append(c.tasks, NewTask("number-of-erc20-transfers-per-minute", "timechart", "Number of ERC20 transfers by minute", c.taskMinutesERC20Transfers, `
-	The graph shows the number of ERC-20 transfers`, `
-	`))
+	c.tasks = append(c.tasks, task_timechart_count.New())
+	c.tasks = append(c.tasks, task_timechart_erc20_transfers.New())
+	c.tasks = append(c.tasks, task_timechart_new_contracts.New())
+	c.tasks = append(c.tasks, task_timechart_rejected.New())
+	c.tasks = append(c.tasks, task_timechart_values.New())
 
-	// Tables
-	c.tasks = append(c.tasks, NewTask("accounts-by-send-count", "table", "Top ETH FROM", c.taskAccountsBySendCount, `
-	Top 10 addresses participating in transactions as a sender`, `
-	`))
-	c.tasks = append(c.tasks, NewTask("accounts-by-recv-count", "table", "Top ETH TO", c.taskAccountsByRcvCount, `
-	Top 10 addresses participating in transactions as a receiver`, `
-	`))
-	c.tasks = append(c.tasks, NewTask("new-eth-contracts-list", "table", "New ETH Contracts - Last 24 hours", c.taskNewContracts, `
-	List of new smart contracts`, `
-	`))
+	c.tasks = append(c.tasks, task_table_new_contracts.New())
 
-	// Tokens
+	c.tasks = append(c.tasks, task_timechart_price.New("BTC", "BTCUSDT"))
+	c.tasks = append(c.tasks, task_timechart_price.New("ETH", "ETHUSDT"))
 	for _, token := range tokens.Instance.GetTokens() {
-		groupToken := &TaskGroup{}
-		groupToken.Code = "task-group-token-" + token.Symbol
-		groupToken.Name = "Token " + token.Symbol
-
-		// Volume
-		codeVolume := token.Symbol + "-token-transfers-volume-per-minute"
-		c.tasks = append(c.tasks, NewTask(codeVolume, "timechart", "Volume of "+token.Symbol+" token transfers by minute", c.taskMinutesTokenTransfers, `
-		Displaying volume of `+token.Symbol+` token transfers per minute on the network`, `
-		`))
-		groupToken.Tasks = append(groupToken.Tasks, codeVolume)
-
-		// Number
-		codeNumber := token.Symbol + "-token-transfers-number-per-minute"
-		c.tasks = append(c.tasks, NewTask(codeNumber, "timechart", "Number of "+token.Symbol+" token transfers by minute", c.taskMinutesTokenTransfersNumber, `
-		Displaying number of `+token.Symbol+` token transfers per minute on the network`, `
-		`))
-		groupToken.Tasks = append(groupToken.Tasks, codeNumber)
-
-		c.taskGroups = append(c.taskGroups, groupToken)
+		c.tasks = append(c.tasks, task_timechart_token_transfers_values.New(token.Symbol))
+		c.tasks = append(c.tasks, task_timechart_token_transfers_number.New(token.Symbol))
+		if token.Symbol != "USDT" {
+			c.tasks = append(c.tasks, task_timechart_price.New(token.Symbol, token.Ticket))
+		}
 	}
 
-	c.cache.Start()
 	go c.ThAn()
 }
 
@@ -115,13 +90,13 @@ func (c *An) GetState() *AnState {
 		state := t.State
 		st.Tasks = append(st.Tasks, &state)
 	}
-	st.Cache = c.cache.GetState()
+	st.Cache = cache.Instance.GetState()
 	c.mtx.Unlock()
 	return &st
 }
 
-func (c *An) GetTask(code string) *Task {
-	var task *Task
+func (c *An) GetTask(code string) *common.Task {
+	var task *common.Task
 	c.mtx.Lock()
 	for _, t := range c.tasks {
 		if t.Code == code {
@@ -132,11 +107,11 @@ func (c *An) GetTask(code string) *Task {
 	return task
 }
 
-func (c *An) GetTasks() []Task {
-	result := make([]Task, 0)
+func (c *An) GetTasks() []common.Task {
+	result := make([]common.Task, 0)
 	c.mtx.Lock()
 	for _, task := range c.tasks {
-		var t Task
+		var t common.Task
 		t.Code = task.Code
 		t.Name = task.Name
 		t.Description = task.Description
@@ -151,8 +126,8 @@ func (c *An) GetTaskGroups() []*TaskGroup {
 	return c.taskGroups
 }
 
-func (c *An) GetResult(code string) *Result {
-	var res *Result
+func (c *An) GetResult(code string) *common.Result {
+	var res *common.Result
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	if r, ok := c.analytics[code]; ok {
@@ -175,17 +150,17 @@ func (c *An) ThAn() {
 		logger.Println("An::an txs:", len(txs))
 
 		for _, task := range c.tasks {
-			var res Result
+			var res common.Result
 
 			res.Code = task.Code
 			res.Type = task.Type
-			res.Parameters = make([]*ResultParameter, 0)
-			res.Table.Items = make([]*ResultTableItem, 0)
-			res.Table.Columns = make([]*ResultTableColumn, 0)
-			res.TimeChart.Items = make([]*ResultTimeChartItem, 0)
+			res.Parameters = make([]*common.ResultParameter, 0)
+			res.Table.Items = make([]*common.ResultTableItem, 0)
+			res.Table.Columns = make([]*common.ResultTableColumn, 0)
+			res.TimeChart.Items = make([]*common.ResultTimeChartItem, 0)
 
 			dtBegin := time.Now()
-			task.Fn(&res, txsByMinutes, txs)
+			task.Fn(task, &res, txsByMinutes, txs)
 			dtEnd := time.Now()
 			duration := dtEnd.Sub(dtBegin).Milliseconds()
 			task.State.Code = task.Code

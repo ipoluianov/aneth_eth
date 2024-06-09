@@ -1,9 +1,11 @@
-package an
+package cache
 
 import (
 	"sync"
 	"time"
 )
+
+var Instance *Cache
 
 type CacheItem struct {
 	Value           float64
@@ -28,6 +30,10 @@ type CacheState struct {
 	GetCount       int
 	SetCount       int
 	RemoveCount    int
+}
+
+func init() {
+	Instance = NewCache()
 }
 
 func NewCache() *Cache {

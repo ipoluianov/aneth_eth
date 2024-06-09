@@ -1,4 +1,4 @@
-package an
+package task_timechart_token_transfers_values
 
 import (
 	"fmt"
@@ -6,30 +6,42 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ipoluianov/aneth_eth/cache"
+	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
 	"github.com/ipoluianov/aneth_eth/tokens"
 	"github.com/ipoluianov/aneth_eth/utils"
 	"github.com/ipoluianov/gomisc/logger"
 )
 
-func (c *An) taskMinutesTokenTransfers(result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
-	logger.Println("An::taskMinutesTokenTransfers begin")
+func New(symbol string) *common.Task {
+	var c common.Task
 
-	parts := strings.FieldsFunc(result.Code, func(r rune) bool {
-		return r == '-'
-	})
-
-	if len(parts) == 0 {
-		return
+	if symbol != "ETH" {
+		c.Code = "token-" + strings.ToLower(symbol) + "-transfer-amount"
+		c.Name = "Token " + symbol + " - Transfer Amount"
+	} else {
+		c.Code = strings.ToLower(symbol) + "-transfer-amount"
+		c.Name = symbol + " - Transfer Amount"
 	}
 
-	tokenSymbol := parts[0]
+	c.Type = "timechart"
+	c.Fn = Run
+	c.Description = symbol + " - Transfer Amount per minute"
+	c.Text = ""
+	c.Ticker = ""
+	c.Symbol = symbol
+	return &c
+}
+
+func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
+	logger.Println("An::taskMinutesTokenTransfers begin")
 
 	var token *tokens.Token
 
 	tokens := tokens.Instance.GetTokens()
 	for _, t := range tokens {
-		if t.Symbol == tokenSymbol {
+		if t.Symbol == task.Symbol {
 			token = t
 			break
 		}
@@ -42,11 +54,11 @@ func (c *An) taskMinutesTokenTransfers(result *Result, txsByMin *db.TxsByMinutes
 	var div, e = big.NewInt(10), big.NewInt(int64(token.Decimals))
 	div.Exp(div, e, nil)
 
-	maximums := make([]*ResultTimeChartItem, 0)
+	maximums := make([]*common.ResultTimeChartItem, 0)
 
 	for i := 0; i < len(txsByMin.Items); i++ {
 		src := txsByMin.Items[i]
-		var item ResultTimeChartItem
+		var item common.ResultTimeChartItem
 		item.Index = i
 		item.DT = src.DT
 		item.DTStr = time.Unix(int64(item.DT), 0).UTC().Format("2006-01-02 15:04:05")
@@ -58,7 +70,7 @@ func (c *An) taskMinutesTokenTransfers(result *Result, txsByMin *db.TxsByMinutes
 		vFloat := 0.0
 		v := big.NewInt(0)
 
-		cacheItem := c.cache.Get(cacheId)
+		cacheItem := cache.Instance.Get(cacheId)
 		if cacheItem == nil {
 			for _, t := range src.TXS {
 				if !t.TxValid {
@@ -81,7 +93,7 @@ func (c *An) taskMinutesTokenTransfers(result *Result, txsByMin *db.TxsByMinutes
 			}
 			bigFloatValue = bigFloatValue.Quo(bigFloatValue, powerOfTen)
 			vFloat, _ = bigFloatValue.Float64()
-			c.cache.Set(cacheId, vFloat)
+			cache.Instance.Set(cacheId, vFloat)
 		} else {
 			vFloat = cacheItem.Value
 		}

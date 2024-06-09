@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/ipoluianov/aneth_eth/an"
+	"github.com/ipoluianov/aneth_eth/cache"
 	"github.com/ipoluianov/aneth_eth/db"
 	"github.com/ipoluianov/aneth_eth/httpserver"
+	"github.com/ipoluianov/aneth_eth/market"
 	"github.com/ipoluianov/gomisc/logger"
 )
 
@@ -24,6 +26,8 @@ func Start() {
 	httpserver.Instance.Start()
 	db.Instance.Start()
 	an.Instance.Start()
+	market.Instance.Start()
+	cache.Instance.Start()
 
 	logger.Println("Start end")
 }
