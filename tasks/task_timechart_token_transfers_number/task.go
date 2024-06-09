@@ -11,7 +11,6 @@ import (
 	"github.com/ipoluianov/aneth_eth/db"
 	"github.com/ipoluianov/aneth_eth/tokens"
 	"github.com/ipoluianov/aneth_eth/utils"
-	"github.com/ipoluianov/gomisc/logger"
 )
 
 func New(symbol string) *common.Task {
@@ -35,8 +34,6 @@ func New(symbol string) *common.Task {
 }
 
 func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
-	logger.Println("An::taskMinutesTokenTransfersNumber begin")
-
 	var token *tokens.Token
 
 	tokens := tokens.Instance.GetTokens()
@@ -90,7 +87,4 @@ func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, tx
 
 		result.TimeChart.Items = append(result.TimeChart.Items, &item)
 	}
-	result.Count = len(result.TimeChart.Items)
-	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
-	logger.Println("An::taskMinutesTokenTransfersNumber end")
 }

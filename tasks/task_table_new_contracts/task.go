@@ -7,7 +7,6 @@ import (
 
 	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
-	"github.com/ipoluianov/gomisc/logger"
 )
 
 func New() *common.Task {
@@ -23,8 +22,6 @@ func New() *common.Task {
 }
 
 func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
-	logger.Println("An::taskNewContracts begin")
-
 	type Item struct {
 		ContractAddress string
 		DT              uint64
@@ -70,8 +67,4 @@ func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, tx
 		tableItem.Values = append(tableItem.Values, fmt.Sprint(item.GasUsed))
 		result.Table.Items = append(result.Table.Items, &tableItem)
 	}
-
-	result.Count = len(result.Table.Items)
-	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
-	logger.Println("An::taskNewContracts end")
 }

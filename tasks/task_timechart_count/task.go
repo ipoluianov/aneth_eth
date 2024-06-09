@@ -29,6 +29,4 @@ func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, tx
 		item.Value = float64(len(src.TXS))
 		result.TimeChart.Items = append(result.TimeChart.Items, &item)
 	}
-	result.Count = len(result.TimeChart.Items)
-	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
 }

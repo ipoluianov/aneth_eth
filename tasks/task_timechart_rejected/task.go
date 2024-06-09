@@ -7,7 +7,6 @@ import (
 	"github.com/ipoluianov/aneth_eth/cache"
 	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
-	"github.com/ipoluianov/gomisc/logger"
 )
 
 func New() *common.Task {
@@ -23,7 +22,6 @@ func New() *common.Task {
 }
 
 func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
-	logger.Println("An::taskMinutesCountOfUsdt begin")
 	for i := 0; i < len(txsByMin.Items); i++ {
 		src := txsByMin.Items[i]
 		var item common.ResultTimeChartItem
@@ -51,7 +49,4 @@ func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, tx
 
 		result.TimeChart.Items = append(result.TimeChart.Items, &item)
 	}
-	result.Count = len(result.TimeChart.Items)
-	result.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
-	logger.Println("An::taskMinutesCountOfUsdt end")
 }

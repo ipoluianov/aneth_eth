@@ -161,6 +161,8 @@ func (c *An) ThAn() {
 
 			dtBegin := time.Now()
 			task.Fn(task, &res, txsByMinutes, txs)
+			res.Count = len(res.TimeChart.Items)
+			res.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
 			dtEnd := time.Now()
 			duration := dtEnd.Sub(dtBegin).Milliseconds()
 			task.State.Code = task.Code
