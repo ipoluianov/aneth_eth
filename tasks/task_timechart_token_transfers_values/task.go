@@ -13,20 +13,20 @@ import (
 	"github.com/ipoluianov/aneth_eth/utils"
 )
 
-func New(symbol string) *common.Task {
+func New(symbol string, name string) *common.Task {
 	var c common.Task
 
 	if symbol != "ETH" {
 		c.Code = "token-" + strings.ToLower(symbol) + "-transfer-amount"
-		c.Name = "Token " + symbol + " - Transfer Amount"
+		c.Name = "Token " + name + " - Transfer Amount"
 	} else {
 		c.Code = strings.ToLower(symbol) + "-transfer-amount"
-		c.Name = symbol + " - Transfer Amount"
+		c.Name = name + " - Transfer Amount"
 	}
 
 	c.Type = "timechart"
 	c.Fn = Run
-	c.Description = symbol + " - Transfer Amount per minute"
+	c.Description = name + " - Transfer Amount per minute"
 	c.Text = ""
 	c.Ticker = ""
 	c.Symbol = symbol

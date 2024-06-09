@@ -2,13 +2,15 @@ package httpserver
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/ipoluianov/aneth_eth/an"
+	"github.com/ipoluianov/aneth_eth/common"
+	"github.com/ipoluianov/aneth_eth/pages"
 	"github.com/ipoluianov/aneth_eth/static"
 	"github.com/ipoluianov/aneth_eth/utils"
+	"github.com/ipoluianov/aneth_eth/views"
 	"github.com/ipoluianov/gomisc/logger"
 )
 
@@ -17,15 +19,10 @@ var Instance *HttpServer
 type HttpServer struct {
 	srv    *http.Server
 	srvTLS *http.Server
-
-	siteName        string
-	siteDescription string
 }
 
 func NewHttpServer() *HttpServer {
 	var c HttpServer
-	c.siteName = "Ethereum Analytics - U00"
-	c.siteDescription = "Ethereum Analytics. Various network statistics for the last 24 hours."
 	return &c
 }
 
@@ -163,16 +160,16 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	reqType := parts[0]
 
-	if reqType == "p" {
+	if reqType == "v" {
 		if len(parts) == 2 {
-			c.processPage(w, r, parts[1])
+			c.processView(w, r, parts[1])
 			return
 		}
 	}
 
-	if reqType == "c" {
+	if reqType == "p" {
 		if len(parts) == 2 {
-			c.processComplex(w, r, parts[1])
+			c.processPage(w, r, parts[1])
 			return
 		}
 	}
@@ -196,39 +193,39 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Write(result)
 }
 
-func (c *HttpServer) processPage(w http.ResponseWriter, _ *http.Request, pageCode string) {
+func (c *HttpServer) processView(w http.ResponseWriter, _ *http.Request, viewCode string) {
 	result := string(static.FileIndex)
 
-	title := c.siteName
-	description := c.siteDescription
+	title := common.GlobalSiteName
+	description := common.GlobalSiteDescription
 	content := ""
 
-	if pageCode == "index" {
+	if viewCode == "index" {
 		content = c.getHomePage()
 	}
 
-	if pageCode == "legal_user_agreement" {
+	if viewCode == "legal_user_agreement" {
 		content = static.FileUserAgreement
 	}
 
-	if pageCode == "legal_policy" {
+	if viewCode == "legal_policy" {
 		content = static.FilePrivatePolicy
 	}
 
-	if pageCode == "map" {
-		content = c.getMap()
-		title = "Site Map - " + c.siteName
-		description = "Site Map. " + c.siteDescription
+	if viewCode == "map" {
+		content = pages.BuildMap()
+		title = "Site Map - " + common.GlobalSiteName
+		description = "Site Map. " + common.GlobalSiteDescription
 	}
 
-	if pageCode == "state" {
+	if viewCode == "state" {
 		content = static.FileState
-		title = "State - " + c.siteName
-		description = "State of the site. " + c.siteDescription
+		title = "State - " + common.GlobalSiteName
+		description = "State of the site. " + common.GlobalSiteDescription
 	}
 
 	if len(content) == 0 {
-		content, title, description = c.getPage(pageCode, title, description, "default", 400, true, true, true, true)
+		content, title, description = views.GetView(viewCode, title, description, "default", 400, true, true, true, true)
 	}
 
 	result = strings.ReplaceAll(result, "%TITLE%", title)
@@ -238,135 +235,23 @@ func (c *HttpServer) processPage(w http.ResponseWriter, _ *http.Request, pageCod
 	w.Write([]byte(result))
 }
 
-func (c *HttpServer) getComplex(complexCode string) string {
-	content := ""
-	title := c.siteName
-	description := c.siteDescription
-	if complexCode == "index" {
-		p1, _, _ := c.getPage("eth-price", title, description, "instance1", 200, false, false, false, false)
-		content += p1
-		p2, _, _ := c.getPage("btc-price", title, description, "instance2", 200, false, false, false, true)
-		content += p2
-	}
-
-	if complexCode == "eth" {
-		p1, _, _ := c.getPage("eth-price", title, description, "instance1", 300, false, false, false, false)
-		content += p1
-		p2, _, _ := c.getPage("eth-transfer-volume-per-minute", title, description, "instance2", 300, false, false, false, false)
-		content += p2
-		p3, _, _ := c.getPage("number-of-transactions-per-minute", title, description, "instance3", 300, false, false, false, true)
-		content += p3
-	}
-	return content
-}
-
-func (c *HttpServer) processComplex(w http.ResponseWriter, _ *http.Request, complexCode string) {
+func (c *HttpServer) processPage(w http.ResponseWriter, _ *http.Request, pageCode string) {
 	result := string(static.FileIndex)
 
-	title := c.siteName
-	description := c.siteDescription
+	pageRes := pages.Instance.GetPage(pageCode)
 
-	content := c.getComplex(complexCode)
-
-	result = strings.ReplaceAll(result, "%TITLE%", title)
-	result = strings.ReplaceAll(result, "%DESCRIPTION%", description)
-	result = strings.ReplaceAll(result, "%CONTENT%", content)
+	result = strings.ReplaceAll(result, "%TITLE%", pageRes.Name)
+	result = strings.ReplaceAll(result, "%DESCRIPTION%", pageRes.Description)
+	result = strings.ReplaceAll(result, "%CONTENT%", pageRes.Content)
 
 	w.Write([]byte(result))
-}
-
-func (c *HttpServer) getMap() string {
-	result := ""
-
-	fAddItem := func(name string, url string) {
-		tmp := `    <li><a href="%URL%">%NAME%</a></li>` + "\r\n"
-		tmp = strings.ReplaceAll(tmp, "%URL%", url)
-		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
-		result += tmp
-	}
-
-	fAddHeader := func(name string) {
-		tmp := `    <h2>%NAME%</h2>` + "\r\n"
-		tmp = strings.ReplaceAll(tmp, "%NAME%", name)
-		result += tmp
-	}
-
-	fAddHeader("Main")
-	fAddItem("INDEX", "/")
-	fAddItem("SITE MAP", "/p/map")
-
-	tasks := an.Instance.GetTasks()
-	fAddHeader("Analytics")
-	for _, task := range tasks {
-		fAddItem(task.Name, "/p/"+task.Code)
-	}
-
-	fAddHeader("JSON-REST")
-	fAddItem("STATE", "/d/state")
-
-	for _, task := range tasks {
-		fAddItem(task.Code, "/d/"+task.Code)
-	}
-
-	return result
-}
-
-func (c *HttpServer) getPage(code string, defaultTitle string, defaultDescription string, instance string, chartHeight int, showTitle, showDesc bool, showText bool, showHorScale bool) (result string, title string, description string) {
-	title = defaultTitle
-	description = defaultDescription
-	task := an.Instance.GetTask(code)
-	if task == nil {
-		return
-	}
-
-	if task.Type == "timechart" {
-		result = static.FileViewChart
-	}
-
-	if task.Type == "table" {
-		result = static.FileViewTable
-	}
-
-	title = task.Name + " - " + c.siteName
-	description = task.Description + " " + defaultDescription
-
-	displayDescription := task.Description
-	displayText := task.Text
-	displayName := task.Name
-
-	displayStyleName := "none"
-	if showTitle {
-		displayStyleName = "block"
-	}
-
-	displayStyleDesc := "none"
-	if showTitle {
-		displayStyleDesc = "block"
-	}
-
-	displayStyleText := "none"
-	if showTitle {
-		displayStyleText = "block"
-	}
-
-	result = strings.ReplaceAll(result, "%VIEW_CODE%", task.Code)
-	result = strings.ReplaceAll(result, "%VIEW_NAME%", displayName)
-	result = strings.ReplaceAll(result, "%VIEW_DESC%", displayDescription)
-	result = strings.ReplaceAll(result, "%VIEW_TEXT%", displayText)
-	result = strings.ReplaceAll(result, "VIEW_INSTANCE", instance)
-	result = strings.ReplaceAll(result, "VIEW_DISPLAY_NAME", displayStyleName)
-	result = strings.ReplaceAll(result, "VIEW_DISPLAY_DESC", displayStyleDesc)
-	result = strings.ReplaceAll(result, "VIEW_DISPLAY_TEXT", displayStyleText)
-	result = strings.ReplaceAll(result, "VIEW_CHART_HEIGHT", fmt.Sprint(chartHeight))
-	result = strings.ReplaceAll(result, "VIEW_DRAW_HOR_SCALE", fmt.Sprint(showHorScale))
-
-	return
 }
 
 func (c *HttpServer) getHomePage() string {
 	result := ""
 
-	result += c.getComplex("index")
+	pageRes := pages.Instance.GetPage("index")
+	result += pageRes.Content
 
 	fAddItem := func(name string, url string) {
 		tmp := `    <li><a href="%URL%">%NAME%</a></li>` + "\r\n"
@@ -412,7 +297,7 @@ func (c *HttpServer) getHomePage() string {
 				}
 			}
 			if found {
-				fAddItem(task.Name, "/p/"+task.Code)
+				fAddItem(task.Name, "/v/"+task.Code)
 				taskWithGroup[task.Code] = struct{}{}
 			}
 		}
@@ -423,7 +308,7 @@ func (c *HttpServer) getHomePage() string {
 		if _, ok := taskWithGroup[task.Code]; ok {
 			continue
 		}
-		fAddItem(task.Name, "/p/"+task.Code)
+		fAddItem(task.Name, "/v/"+task.Code)
 	}
 
 	return result

@@ -10,20 +10,20 @@ import (
 	"github.com/ipoluianov/aneth_eth/market"
 )
 
-func New(symbol string, ticker string) *common.Task {
+func New(symbol string, name string, ticker string) *common.Task {
 	var c common.Task
 
 	if symbol != "ETH" && symbol != "BTC" {
 		c.Code = "token-" + strings.ToLower(symbol) + "-price"
-		c.Name = "Token " + symbol + " Price (USDT)"
+		c.Name = "Token " + name + " - Price (USDT)"
 	} else {
 		c.Code = strings.ToLower(symbol) + "-price"
-		c.Name = symbol + " Price (USDT)"
+		c.Name = name + " - Price (USDT)"
 	}
 
 	c.Type = "timechart"
 	c.Fn = Run
-	c.Description = "Price of " + symbol
+	c.Description = "Price of " + name
 	c.Text = ""
 	c.Ticker = ticker
 	c.Symbol = symbol

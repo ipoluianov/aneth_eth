@@ -70,13 +70,13 @@ func (c *An) Start() {
 
 	c.tasks = append(c.tasks, task_table_new_contracts.New())
 
-	c.tasks = append(c.tasks, task_timechart_price.New("BTC", "BTCUSDT"))
-	c.tasks = append(c.tasks, task_timechart_price.New("ETH", "ETHUSDT"))
+	c.tasks = append(c.tasks, task_timechart_price.New("BTC", "Bitcoin", "BTCUSDT"))
+	c.tasks = append(c.tasks, task_timechart_price.New("ETH", "ETH", "ETHUSDT"))
 	for _, token := range tokens.Instance.GetTokens() {
-		c.tasks = append(c.tasks, task_timechart_token_transfers_values.New(token.Symbol))
-		c.tasks = append(c.tasks, task_timechart_token_transfers_number.New(token.Symbol))
+		c.tasks = append(c.tasks, task_timechart_token_transfers_values.New(token.Symbol, token.Name))
+		c.tasks = append(c.tasks, task_timechart_token_transfers_number.New(token.Symbol, token.Name))
 		if token.Symbol != "USDT" {
-			c.tasks = append(c.tasks, task_timechart_price.New(token.Symbol, token.Ticket))
+			c.tasks = append(c.tasks, task_timechart_price.New(token.Symbol, token.Name, token.Ticket))
 		}
 	}
 

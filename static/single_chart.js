@@ -7,10 +7,11 @@ class MetricsChart {
         this.yData = yData;
         this.displayMin = displayMin;
         this.displayMax = displayMax;
+        this.topHeaderHeight = 20;
         this.leftScaleWidth = 80;
         this.bottomScaleheight = 40;
         this.height = height;
-        this.yValuesPadding = 0.1;
+        this.yValuesPadding = 0.05;
         this.colorGrid = '#333333';
         this.colorScalesText = '#AAAAAA';
         this.colorSeries = '#00CCFF';
@@ -40,7 +41,6 @@ class MetricsChart {
         this.drawChart();
     }
 
-
     setData(xData, yData) {
         this.xData = xData;
         this.yData = yData;
@@ -63,10 +63,11 @@ class MetricsChart {
         maxDataValue = maxDataValue + range * this.yValuesPadding
 
         const rangeValues = maxDataValue - minDataValue;
-        const rangePixels = this.height - this.bottomScaleheight
+        const rangePixels = this.height - this.bottomScaleheight - this.topHeaderHeight;
         const pixelsPerValue = rangePixels / rangeValues;
         const result = (yValue - minDataValue) * pixelsPerValue;
-        return (this.height - this.bottomScaleheight) - result;
+        return (this.height - this.bottomScaleheight - this.topHeaderHeight) - result + this.topHeaderHeight;
+        return result;
     }
 
     fromUnixTime(unixTime) {
@@ -271,7 +272,7 @@ class MetricsChart {
             const y = this.getYByValue(yScaleValue);
 
             ctx.save();
-            ctx.rect(this.leftScaleWidth, 0, this.width - this.leftScaleWidth, this.height - this.bottomScaleheight);
+            ctx.rect(this.leftScaleWidth, 0, this.width - this.leftScaleWidth, this.height - this.bottomScaleheight - this.topHeaderHeight);
             ctx.clip();
 
             ctx.beginPath();
@@ -283,7 +284,7 @@ class MetricsChart {
             ctx.restore();
 
             ctx.save();
-            ctx.rect(0, 0, this.leftScaleWidth, this.height - this.bottomScaleheight);
+            ctx.rect(0, this.topHeaderHeight, this.leftScaleWidth, this.height - this.bottomScaleheight - this.topHeaderHeight);
             ctx.clip();
             ctx.fillStyle = this.colorScalesText;
             let str = labelsStr[index];
