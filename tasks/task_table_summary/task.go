@@ -3,6 +3,7 @@ package task_table_summary
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
@@ -21,10 +22,6 @@ func New() *common.Task {
 }
 
 func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
-	type Item struct {
-		Name  string
-		Value float64
-	}
 
 	itemTotalCount := 0.0
 	itemValidCount := 0.0
@@ -67,19 +64,42 @@ func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, tx
 	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: "Name"})
 	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: "Value"})
 
+	result.Table.Columns[1].Align = "right"
+
 	fAdd := func(name string, value string) {
 		var tableItem common.ResultTableItem
 		tableItem.Values = append(tableItem.Values, name)
-		tableItem.Values = append(tableItem.Values, fmt.Sprintln(value))
+		tableItem.Values = append(tableItem.Values, fmt.Sprint(value))
 		result.Table.Items = append(result.Table.Items, &tableItem)
 	}
 
-	fAdd("Total Transactions", strconv.FormatFloat(itemTotalCount, 'f', 0, 64))
-	fAdd("Valid Transactions", strconv.FormatFloat(itemValidCount, 'f', 0, 64))
-	fAdd("Invalid Transactions", strconv.FormatFloat(itemInvalidCount, 'f', 0, 64))
-	fAdd("New Contracts", strconv.FormatFloat(itemNewContractCount, 'f', 0, 64))
-	fAdd("Regular Transfers Count", strconv.FormatFloat(itemNativeTransfers, 'f', 0, 64))
-	fAdd("Regular Transfers Amount", strconv.FormatFloat(itemTotalTransferAmount, 'f', 3, 64))
-	fAdd("Contract Calls Count", strconv.FormatFloat(itemContractCalls, 'f', 0, 64))
-	fAdd("Contract Calls Amount", strconv.FormatFloat(itemTotalContractCallAmount, 'f', 3, 64))
+	fAdd("Total Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemTotalCount, 'f', 0, 64)))
+	fAdd("Valid Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemValidCount, 'f', 0, 64)))
+	fAdd("Invalid Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemInvalidCount, 'f', 0, 64)))
+	fAdd("New Contracts", formatNumberWithSpaces(strconv.FormatFloat(itemNewContractCount, 'f', 0, 64)))
+	fAdd("Regular Transfers Count", formatNumberWithSpaces(strconv.FormatFloat(itemNativeTransfers, 'f', 0, 64)))
+	fAdd("Regular Transfers Amount", formatNumberWithSpaces(strconv.FormatFloat(itemTotalTransferAmount, 'f', 0, 64)))
+	fAdd("Contract Calls Count", formatNumberWithSpaces(strconv.FormatFloat(itemContractCalls, 'f', 0, 64)))
+	fAdd("Contract Calls Amount", formatNumberWithSpaces(strconv.FormatFloat(itemTotalContractCallAmount, 'f', 0, 64)))
+}
+
+func formatNumberWithSpaces(s string) string {
+	var result strings.Builder
+	length := len(s)
+
+	// Пройдемся по строке в обратном порядке и добавим пробелы каждые три цифры
+	for i := 0; i < length; i++ {
+		if i > 0 && i%3 == 0 {
+			result.WriteString(" ")
+		}
+		result.WriteByte(s[length-i-1])
+	}
+
+	// Перевернем строку, чтобы получить правильный порядок
+	runes := []rune(result.String())
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+
+	return string(runes)
 }

@@ -5,7 +5,8 @@ type ResultTableItem struct {
 }
 
 type ResultTableColumn struct {
-	Name string
+	Name  string
+	Align string
 }
 
 type ResultTable struct {

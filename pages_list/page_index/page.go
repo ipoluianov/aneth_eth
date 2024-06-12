@@ -18,6 +18,8 @@ func Run(page *common.Page, result *common.PageRunResult) {
 	content := ""
 	p1, _, _ := views.GetView("eth-price", "", "", "instance1", 200, false, false, false, true)
 	content += p1
+	p2, _, _ := views.GetView("summary", "", "", "instance2", 200, false, false, false, true)
+	content += p2
 	/*p2, _, _ := views.GetView("btc-price", "", "", "instance2", 200, false, false, false, true)
 	content += p2*/
 

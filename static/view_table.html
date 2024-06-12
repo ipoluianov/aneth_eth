@@ -27,7 +27,12 @@
                 resultHtml += "<tr>";
                 for (let colIndex = 0; colIndex < columnsCount; colIndex++) {
                     let item = row.Values[colIndex];
-                    resultHtml += "<td>" + item + "</td>";
+                    let colAlign = "left";
+                    if (data.Table.Columns[colIndex].Align === "right") {
+                        colAlign = "right";
+                    }
+
+                    resultHtml += `<td style="text-align: ` + colAlign + `;">`+ item + "</td>";
                 }
                 resultHtml += "</tr>";
             }
