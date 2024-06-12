@@ -8,6 +8,7 @@ import (
 	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
 	"github.com/ipoluianov/aneth_eth/tasks/task_table_new_contracts"
+	"github.com/ipoluianov/aneth_eth/tasks/task_table_summary"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_count"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_erc20_transfers"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_new_contracts"
@@ -16,6 +17,8 @@ import (
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_token_transfers_number"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_token_transfers_values"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_values"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_volatility"
+
 	"github.com/ipoluianov/aneth_eth/tokens"
 	"github.com/ipoluianov/gomisc/logger"
 )
@@ -69,6 +72,7 @@ func (c *An) Start() {
 	c.tasks = append(c.tasks, task_timechart_values.New())
 
 	c.tasks = append(c.tasks, task_table_new_contracts.New())
+	c.tasks = append(c.tasks, task_table_summary.New())
 
 	c.tasks = append(c.tasks, task_timechart_price.New("BTC", "Bitcoin", "BTCUSDT"))
 	c.tasks = append(c.tasks, task_timechart_price.New("ETH", "ETH", "ETHUSDT"))
@@ -77,6 +81,7 @@ func (c *An) Start() {
 		c.tasks = append(c.tasks, task_timechart_token_transfers_number.New(token.Symbol, token.Name))
 		if token.Symbol != "USDT" {
 			c.tasks = append(c.tasks, task_timechart_price.New(token.Symbol, token.Name, token.Ticket))
+			c.tasks = append(c.tasks, task_timechart_volatility.New(token.Symbol, token.Name, token.Ticket))
 		}
 	}
 
