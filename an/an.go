@@ -188,7 +188,7 @@ func (c *An) ThAn() {
 				for _, item := range res.TimeChart.Items {
 					values = append(values, item.Value)
 				}
-				pngBS, err := utils.CreateSparkline(values, 200, 100, color.RGBA{0, 0, 0, 0}, color.RGBA{200, 200, 200, 255})
+				pngBS, err := utils.CreateSparkline(values, 300, 100, color.RGBA{0, 0, 0, 0}, color.RGBA{200, 200, 200, 255})
 				if err == nil {
 					images.Instance.Set(task.Code, pngBS, task.Name)
 				}
