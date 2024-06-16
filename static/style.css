@@ -27,7 +27,7 @@ body {
 }
 
 .main_block {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0% auto;
 }
 
@@ -67,8 +67,8 @@ body {
 
 .menu-block {
     /*flex: 1 1 calc(33.333% - 20px);*/
-    min-width: 200px;
-    max-width: 200px;
+    min-width: 300px;
+    max-width: 300px;
     background-color: #222222;
     text-decoration: none;
     color: #EEE;
