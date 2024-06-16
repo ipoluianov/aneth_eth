@@ -241,7 +241,7 @@ class MetricsChart {
 
         ////////////////////////////////////////////////////
         // Y SCALE /////////////////////////////////////////
-        const yLabelHeight = 20;
+        const yLabelHeight = 40;
         const yLabelCount = this.height / yLabelHeight;
         let yScaleStepTemp = (maxDataValue - minDataValue) / yLabelCount;
         let yScaleStep = this.roundToStep(yScaleStepTemp);
