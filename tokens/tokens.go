@@ -27,9 +27,8 @@ func NewTokens() *Tokens {
 	c.items = append(c.items, NewToken("WBTC", 8, "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", "Wrapped BTC", "BTCUSDT"))
 	c.items = append(c.items, NewToken("UNI", 18, "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984", "Uniswap", "UNIUSDT"))
 	c.items = append(c.items, NewToken("NEAR", 24, "0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4", "NEAR", "NEARUSDT"))
-	c.items = append(c.items, NewToken("LEO", 18, "0x2AF5D2aD76741191D15Dfe7bF6aC92d4Bd912Ca3", "Bitfinex LEO Token", ""))
 	c.items = append(c.items, NewToken("PEPE", 18, "0x6982508145454Ce325dDbE47a25d4ec3d2311933", "Pepe", "PEPEUSDT"))
-	c.items = append(c.items, NewToken("DAI", 18, "0x6B175474E89094C44Da98b954EedeAC495271d0F", "Dai Stablecoin", ""))
+	c.items = append(c.items, NewToken("DAI", 18, "0x6B175474E89094C44Da98b954EedeAC495271d0F", "Dai Stablecoin", "DAIUSDT"))
 	c.items = append(c.items, NewToken("FET", 18, "0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85", "Fetch", "FETUSDT"))
 
 	return &c

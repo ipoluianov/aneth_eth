@@ -29,7 +29,9 @@ func Run(page *common.Page, result *common.PageRunResult) {
 	content += p3
 	p4, _, _ := views.GetView("token-"+strings.ToLower(page.Symbol)+"-volatility", "", "", "instance4", 200, false, false, false, false)
 	content += p4
-	p5, _, _ := views.GetView("btc-price", "", "", "instance5", 200, false, false, false, true)
+	p5, _, _ := views.GetView("token-"+strings.ToLower(page.Symbol)+"-price-minus-btc-price", "", "", "instance5", 200, false, false, false, false)
 	content += p5
+	p6, _, _ := views.GetView("btc-price", "", "", "instance6", 200, false, false, false, true)
+	content += p6
 	result.Content = content
 }

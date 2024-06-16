@@ -63,24 +63,35 @@ func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, tx
 
 	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: "Name"})
 	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: "Value"})
+	result.Table.Columns = append(result.Table.Columns, &common.ResultTableColumn{Name: ""})
 
 	result.Table.Columns[1].Align = "right"
 
-	fAdd := func(name string, value string) {
+	fAdd := func(name string, value string, comment string) {
 		var tableItem common.ResultTableItem
 		tableItem.Values = append(tableItem.Values, name)
 		tableItem.Values = append(tableItem.Values, fmt.Sprint(value))
+		tableItem.Values = append(tableItem.Values, comment)
 		result.Table.Items = append(result.Table.Items, &tableItem)
 	}
 
-	fAdd("Total Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemTotalCount, 'f', 0, 64)))
-	fAdd("Valid Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemValidCount, 'f', 0, 64)))
-	fAdd("Invalid Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemInvalidCount, 'f', 0, 64)))
-	fAdd("New Contracts", formatNumberWithSpaces(strconv.FormatFloat(itemNewContractCount, 'f', 0, 64)))
-	fAdd("Regular Transfers Count", formatNumberWithSpaces(strconv.FormatFloat(itemNativeTransfers, 'f', 0, 64)))
-	fAdd("Regular Transfers Amount", formatNumberWithSpaces(strconv.FormatFloat(itemTotalTransferAmount, 'f', 0, 64)))
-	fAdd("Contract Calls Count", formatNumberWithSpaces(strconv.FormatFloat(itemContractCalls, 'f', 0, 64)))
-	fAdd("Contract Calls Amount", formatNumberWithSpaces(strconv.FormatFloat(itemTotalContractCallAmount, 'f', 0, 64)))
+	validTransactionPercents := 0.0
+	invalidTransactionPercents := 0.0
+	if itemTotalCount > 0 {
+		validTransactionPercents = 100 * itemValidCount / itemTotalCount
+		invalidTransactionPercents = 100 - validTransactionPercents
+	}
+
+	fAdd("Total Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemTotalCount, 'f', 0, 64)), "")
+	fAdd("Valid Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemValidCount, 'f', 0, 64)), " ("+strconv.FormatFloat(validTransactionPercents, 'f', 0, 64)+"%)")
+	fAdd("Invalid Transactions", formatNumberWithSpaces(strconv.FormatFloat(itemInvalidCount, 'f', 0, 64)), " ("+strconv.FormatFloat(invalidTransactionPercents, 'f', 0, 64)+"%)")
+	fAdd("New Contracts", formatNumberWithSpaces(strconv.FormatFloat(itemNewContractCount, 'f', 0, 64)), "")
+
+	fAdd("Regular Transfers Count", formatNumberWithSpaces(strconv.FormatFloat(itemNativeTransfers, 'f', 0, 64)), "")
+	fAdd("Contract Calls Count", formatNumberWithSpaces(strconv.FormatFloat(itemContractCalls, 'f', 0, 64)), "")
+
+	fAdd("Regular Transfers Amount", formatNumberWithSpaces(strconv.FormatFloat(itemTotalTransferAmount, 'f', 0, 64)), "")
+	fAdd("Contract Calls Amount", formatNumberWithSpaces(strconv.FormatFloat(itemTotalContractCallAmount, 'f', 0, 64)), "")
 }
 
 func formatNumberWithSpaces(s string) string {

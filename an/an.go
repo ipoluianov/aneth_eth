@@ -1,23 +1,28 @@
 package an
 
 import (
+	"image/color"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/ipoluianov/aneth_eth/cache"
 	"github.com/ipoluianov/aneth_eth/common"
 	"github.com/ipoluianov/aneth_eth/db"
+	"github.com/ipoluianov/aneth_eth/images"
 	"github.com/ipoluianov/aneth_eth/tasks/task_table_new_contracts"
 	"github.com/ipoluianov/aneth_eth/tasks/task_table_summary"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_count"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_erc20_transfers"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_new_contracts"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_price"
+	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_price_minus_btc"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_rejected"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_token_transfers_number"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_token_transfers_values"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_values"
 	"github.com/ipoluianov/aneth_eth/tasks/task_timechart_volatility"
+	"github.com/ipoluianov/aneth_eth/utils"
 
 	"github.com/ipoluianov/aneth_eth/tokens"
 	"github.com/ipoluianov/gomisc/logger"
@@ -55,37 +60,35 @@ func NewAn() *An {
 }
 
 func (c *An) Start() {
-	/*groupBase := &TaskGroup{}
-	groupBase.Code = "task-group-base"
-	groupBase.Name = "Base reports"
-	groupBase.Tasks = append(groupBase.Tasks, "number-of-transactions-per-minute")
-	groupBase.Tasks = append(groupBase.Tasks, "eth-transfer-volume-per-minute")
-	groupBase.Tasks = append(groupBase.Tasks, "number-of-rejected-transactions-per-minute")
-	groupBase.Tasks = append(groupBase.Tasks, "number-of-new-contracts-per-minute")
-	groupBase.Tasks = append(groupBase.Tasks, "number-of-erc20-transfers-per-minute")
-	c.taskGroups = append(c.taskGroups, groupBase)*/
+	c.AddTask(task_timechart_count.New())
+	c.AddTask(task_timechart_erc20_transfers.New())
+	c.AddTask(task_timechart_new_contracts.New())
+	c.AddTask(task_timechart_rejected.New())
+	c.AddTask(task_timechart_values.New())
 
-	c.tasks = append(c.tasks, task_timechart_count.New())
-	c.tasks = append(c.tasks, task_timechart_erc20_transfers.New())
-	c.tasks = append(c.tasks, task_timechart_new_contracts.New())
-	c.tasks = append(c.tasks, task_timechart_rejected.New())
-	c.tasks = append(c.tasks, task_timechart_values.New())
+	c.AddTask(task_table_new_contracts.New())
+	c.AddTask(task_table_summary.New())
+	c.AddTask(task_timechart_price.New("BTC", "Bitcoin", "BTCUSDT"))
+	c.AddTask(task_timechart_price.New("ETH", "ETH", "ETHUSDT"))
+	c.AddTask(task_timechart_volatility.New("BTC", "Bitcoin", "BTCUSDT"))
+	c.AddTask(task_timechart_volatility.New("ETH", "ETH", "ETHUSDT"))
 
-	c.tasks = append(c.tasks, task_table_new_contracts.New())
-	c.tasks = append(c.tasks, task_table_summary.New())
-
-	c.tasks = append(c.tasks, task_timechart_price.New("BTC", "Bitcoin", "BTCUSDT"))
-	c.tasks = append(c.tasks, task_timechart_price.New("ETH", "ETH", "ETHUSDT"))
 	for _, token := range tokens.Instance.GetTokens() {
-		c.tasks = append(c.tasks, task_timechart_token_transfers_values.New(token.Symbol, token.Name))
-		c.tasks = append(c.tasks, task_timechart_token_transfers_number.New(token.Symbol, token.Name))
-		if token.Symbol != "USDT" {
-			c.tasks = append(c.tasks, task_timechart_price.New(token.Symbol, token.Name, token.Ticket))
-			c.tasks = append(c.tasks, task_timechart_volatility.New(token.Symbol, token.Name, token.Ticket))
+		c.AddTask(task_timechart_token_transfers_values.New(token.Symbol, token.Name))
+		c.AddTask(task_timechart_token_transfers_number.New(token.Symbol, token.Name))
+		if token.Symbol != "USDT" && token.Symbol != "LEO" {
+			c.AddTask(task_timechart_price.New(token.Symbol, token.Name, token.Ticket))
+			c.AddTask(task_timechart_volatility.New(token.Symbol, token.Name, token.Ticket))
+			c.AddTask(task_timechart_price_minus_btc.New(token.Symbol, token.Name, token.Ticket))
 		}
 	}
 
 	go c.ThAn()
+}
+
+func (c *An) AddTask(task *common.Task) {
+	task.ViewProvider = c
+	c.tasks = append(c.tasks, task)
 }
 
 func (c *An) GetState() *AnState {
@@ -154,6 +157,17 @@ func (c *An) ThAn() {
 		}
 		logger.Println("An::an txs:", len(txs))
 
+		{
+			emptyData := make([]float64, 1)
+			emptyData[0] = 0
+			pngBS, err := utils.CreateSparkline(emptyData, 100, 50, color.RGBA{0, 0, 0, 0}, color.RGBA{0, 0, 0, 0})
+			if err != nil {
+				logger.Println("An::ThAn CreateSparkline error:", err)
+			} else {
+				images.Instance.Set("none", pngBS, "none")
+			}
+		}
+
 		for _, task := range c.tasks {
 			var res common.Result
 
@@ -168,11 +182,28 @@ func (c *An) ThAn() {
 			task.Fn(task, &res, txsByMinutes, txs)
 			res.Count = len(res.TimeChart.Items)
 			res.CurrentDateTime = time.Now().UTC().Format("2006-01-02 15:04:05")
+
+			{
+				values := make([]float64, 0)
+				for _, item := range res.TimeChart.Items {
+					values = append(values, item.Value)
+				}
+				pngBS, err := utils.CreateSparkline(values, 200, 100, color.RGBA{0, 0, 0, 0}, color.RGBA{200, 200, 200, 255})
+				if err == nil {
+					images.Instance.Set(task.Code, pngBS, task.Name)
+				}
+			}
+
 			dtEnd := time.Now()
 			duration := dtEnd.Sub(dtBegin).Milliseconds()
 			task.State.Code = task.Code
 			task.State.LastExecTime = time.Now().Format("2006-01-02 15:04:05")
 			task.State.LastExecTimeDurationMs = int(duration)
+
+			if strings.Contains(task.State.Code, "price-minus-btc-price") {
+				logger.Println("!!!!!!!!!!!", task.State.Code, res.Count)
+			}
+
 			c.mtx.Lock()
 			c.analytics[task.Code] = &res
 			c.mtx.Unlock()

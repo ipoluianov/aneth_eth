@@ -70,6 +70,7 @@ func (c *Market) Start() {
 	c.addTicker("PEPE", "PEPEUSDT")
 	c.addTicker("NEAR", "NEARUSDT")
 	c.addTicker("FET", "FETUSDT")
+	c.addTicker("DAI", "DAIUSDT")
 	go c.thUpdate()
 }
 

@@ -8,11 +8,12 @@ type Task struct {
 	Fn    func(task *Task, result *Result, txsByMin *db.TxsByMinutes, txs []*db.Tx)
 	State TaskState
 
-	Name        string
-	Description string
-	Text        string
-	Ticker      string
-	Symbol      string
+	Name         string
+	Description  string
+	Text         string
+	Ticker       string
+	Symbol       string
+	ViewProvider ViewProvider
 }
 
 type TaskState struct {

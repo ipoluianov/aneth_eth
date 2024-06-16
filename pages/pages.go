@@ -5,9 +5,13 @@ import (
 
 	"github.com/ipoluianov/aneth_eth/an"
 	"github.com/ipoluianov/aneth_eth/common"
+	"github.com/ipoluianov/aneth_eth/pages_list/page_eth_summary"
 	"github.com/ipoluianov/aneth_eth/pages_list/page_index"
 	"github.com/ipoluianov/aneth_eth/pages_list/page_token_summary"
 	"github.com/ipoluianov/aneth_eth/pages_list/page_tokens"
+	"github.com/ipoluianov/aneth_eth/pages_list/page_tokens_price_minus_btc_price"
+	"github.com/ipoluianov/aneth_eth/pages_list/page_tokens_volatility"
+
 	"github.com/ipoluianov/aneth_eth/tokens"
 )
 
@@ -29,10 +33,14 @@ func NewPages() *Pages {
 
 	c.addPage(page_index.New())
 	c.addPage(page_tokens.New())
+	c.addPage(page_eth_summary.New())
 
 	for _, token := range tokens.Instance.GetTokens() {
 		c.addPage(page_token_summary.New(token))
 	}
+
+	c.addPage(page_tokens_price_minus_btc_price.New())
+	c.addPage(page_tokens_volatility.New())
 
 	return &c
 }
@@ -54,8 +62,9 @@ func (c *Pages) GetPage(pageCode string) *common.PageRunResult {
 		page.Fn(page, &res)
 		res.Content = `<h1>` + res.Name + `</h1>` + "\r\n" + res.Content
 		result = &res
+		return result
 	}
-	return result
+	return nil
 }
 
 func (c *Pages) GetPages() []*common.Page {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/ipoluianov/aneth_eth/an"
 	"github.com/ipoluianov/aneth_eth/common"
+	"github.com/ipoluianov/aneth_eth/images"
 	"github.com/ipoluianov/aneth_eth/pages"
 	"github.com/ipoluianov/aneth_eth/static"
 	"github.com/ipoluianov/aneth_eth/utils"
@@ -174,6 +175,19 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if reqType == "images" {
+		if len(parts) == 2 {
+			item, err := images.Instance.Get(parts[1])
+			if err != nil {
+				w.WriteHeader(404)
+				return
+			}
+			w.Header().Add("Content-Type", "image/png")
+			w.Write(item.Data)
+			return
+		}
+	}
+
 	if reqType == "d" {
 		if len(parts) < 2 {
 			w.WriteHeader(500)
@@ -182,6 +196,7 @@ func (c *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		pageCode := parts[1]
 		result := GetData(pageCode)
+		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(result))
 		return
 	}
@@ -239,6 +254,11 @@ func (c *HttpServer) processPage(w http.ResponseWriter, _ *http.Request, pageCod
 	result := string(static.FileIndex)
 
 	pageRes := pages.Instance.GetPage(pageCode)
+
+	if pageRes == nil {
+		w.WriteHeader(404)
+		return
+	}
 
 	result = strings.ReplaceAll(result, "%TITLE%", pageRes.Name)
 	result = strings.ReplaceAll(result, "%DESCRIPTION%", pageRes.Description)

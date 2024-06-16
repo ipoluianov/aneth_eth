@@ -32,6 +32,7 @@ func New(symbol string, name string, ticker string) *common.Task {
 
 func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, txs []*db.Tx) {
 	price := market.Instance.GetData(strings.ToUpper(task.Ticker))
+	values := make([]float64, 0)
 	for i := 0; i < len(price); i++ {
 		src := price[i]
 		var item common.ResultTimeChartItem
@@ -41,6 +42,8 @@ func Run(task *common.Task, result *common.Result, txsByMin *db.TxsByMinutes, tx
 		openPrice, _ := strconv.ParseFloat(src.LowPrice, 64)
 		closePrice, _ := strconv.ParseFloat(src.HighPrice, 64)
 		item.Value = (openPrice + closePrice) / 2
+		values = append(values, item.Value)
 		result.TimeChart.Items = append(result.TimeChart.Items, &item)
 	}
+
 }
